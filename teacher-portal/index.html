@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - MarkMetrics</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Include Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="logo-container" style="justify-content: center; padding: 10px 0;">
+            <img src="asset/logo.png" alt="MarkMetrics" style="height: 80px; max-width: 100%; object-fit: contain;">
+        </div>
+
+        <ul class="menu">
+            <li class="active">
+                <a href="index.html" class="active">
+                    <i class="fa-solid fa-border-all"></i> Dashboard
+                </a>
+            </li>
+
+            <li class="dropdown">
+                <a href="#">
+                    <i class="fa-solid fa-rotate"></i> Academic Actions
+                </a>
+                <ul class="submenu">
+                    <li>
+                        <a href="pages/withdraw-request.html">Withdraw Requests</a>
+                    </li>
+                    <li>
+                        <a href="pages/grade-management.html">Grade Management</a>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+
+        <div class="profile-box">
+            <img src="asset/avatar2.jpg" alt="Profile">
+            <div class="profile-info">
+                <h4>PES-Pablo Escober</h4>
+                <p>pes@cse.uiu</p>
+            </div>
+        </div>
+        <div class="logout-btn-container">
+            <button class="logout-btn">Logout</button>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="page-header">
+            <h1>My Courses</h1>
+            <p>Manage and monitor current semester curriculum.</p>
+        </div>
+
+        <div class="course-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+            
+            <a href="pages/marks-entry.html?course=CSE4165&name=Advanced+Algorithms" style="text-decoration: none;">
+                <div class="stat-card" style="display: flex; flex-direction: column; gap: 15px; transition: transform 0.2s; cursor: pointer; height: 100%;">
+                    <div style="background: linear-gradient(135deg, var(--primary-orange), #ff4000); height: 100px; border-radius: 6px; width: 100%;"></div>
+                    <div>
+                        <h3 style="color: var(--text-primary); font-size: 16px; margin-bottom: 5px;">CSE 4165: Advanced Algorithms</h3>
+                        <p style="color: var(--text-secondary); font-size: 13px;">Algorithm design and complexity analysis.</p>
+                    </div>
+                </div>
+            </a>
+
+            <a href="pages/marks-entry.html?course=DS4102&name=Advanced+Machine+Learning" style="text-decoration: none;">
+                <div class="stat-card" style="display: flex; flex-direction: column; gap: 15px; transition: transform 0.2s; cursor: pointer; height: 100%;">
+                    <div style="background: linear-gradient(135deg, var(--color-blue), #0056b3); height: 100px; border-radius: 6px; width: 100%;"></div>
+                    <div>
+                        <h3 style="color: var(--text-primary); font-size: 16px; margin-bottom: 5px;">DS 4102: Advanced Machine Learning</h3>
+                        <p style="color: var(--text-secondary); font-size: 13px;">Neural networks and predictive systems.</p>
+                    </div>
+                </div>
+            </a>
+
+            <a href="pages/marks-entry.html?course=SWE2201&name=Software+Engineering" style="text-decoration: none;">
+                <div class="stat-card" style="display: flex; flex-direction: column; gap: 15px; transition: transform 0.2s; cursor: pointer; height: 100%;">
+                    <div style="background: linear-gradient(135deg, var(--color-green), #008f48); height: 100px; border-radius: 6px; width: 100%;"></div>
+                    <div>
+                        <h3 style="color: var(--text-primary); font-size: 16px; margin-bottom: 5px;">SWE 2201: Software Engineering</h3>
+                        <p style="color: var(--text-secondary); font-size: 13px;">Agile methodologies and SDLC concepts.</p>
+                    </div>
+                </div>
+            </a>
+
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

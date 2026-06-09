@@ -1,0 +1,396 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+
+:root {
+    --surface: #131313;
+    --surface-dim: #131313;
+    --surface-container-low: #1C1B1B;
+    --surface-container: #201f1f;
+    --surface-container-high: #2a2a2a;
+    --surface-container-highest: #353534;
+    --surface-container-lowest: #0e0e0e;
+    --primary-container: #f58220;
+    --primary: #ffb786;
+    --on-primary-container: #5b2a00;
+    --on-surface: #e5e2e1;
+    --on-surface-variant: #ddc1b0;
+    --outline-variant: rgba(86, 67, 54, 0.15);
+    --error: #ffb4ab;
+    --tertiary: #89ceff;
+    --nexus-gradient-bg: radial-gradient(circle at 30% 20%, rgba(245, 130, 32, 0.15) 0%, transparent 50%),
+                         radial-gradient(circle at 70% 80%, rgba(137, 206, 255, 0.05) 0%, transparent 50%);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body, html {
+    height: 100%;
+    margin: 0;
+    font-family: 'Sora', sans-serif;
+    background-color: var(--surface);
+    color: var(--on-surface);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+}
+
+.material-symbols-outlined {
+    font-family: 'Material Symbols Outlined';
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+.layout-container {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Left Section */
+.left-section {
+    display: none;
+    width: 50%;
+    position: relative;
+    background-color: var(--surface-container-lowest);
+    border-right: 1px solid var(--outline-variant);
+}
+@media (min-width: 1024px) {
+    .left-section {
+        display: flex;
+    }
+}
+
+.nexus-bg {
+    position: absolute;
+    inset: 0;
+    background: var(--nexus-gradient-bg);
+    z-index: 0;
+}
+
+/* Dimming gradient specifically for new screenshot */
+.bg-darker {
+    opacity: 0.5;
+}
+
+.main-logo-img {
+    width: 90%;
+    object-fit: contain;
+    filter: drop-shadow(0px 10px 30px rgba(245, 130, 32, 0.3));
+}
+
+/* Right Section */
+.right-section {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: clamp(1rem, 4vh, 2rem);
+    background-color: var(--surface-dim);
+}
+
+@media (min-width: 640px) {
+    .right-section {
+        padding: clamp(2rem, 5vh, 4rem);
+    }
+}
+@media (min-width: 1024px) {
+    .right-section {
+        width: 50%;
+        padding: clamp(2rem, 5vh, 6rem);
+    }
+}
+
+.form-container {
+    width: 100%;
+    max-width: 28rem;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(1.5rem, 4vh, 3rem);
+}
+
+.header {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.25rem, 1vh, 0.5rem);
+}
+
+.logo-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: clamp(0.5rem, 2vh, 1.5rem);
+}
+
+.logo-img {
+    width: 2.25rem;
+    height: 2.25rem;
+    object-fit: contain;
+    background-color: var(--primary-container);
+    border-radius: 0.25rem;
+    padding: 0.25rem;
+}
+
+.logo-text {
+    font-family: 'Sora', sans-serif;
+    font-weight: 700;
+    font-size: 1.25rem;
+    letter-spacing: -0.05em;
+    color: var(--primary-container);
+}
+
+.header h1 {
+    font-family: 'Sora', sans-serif;
+    font-size: clamp(1.5rem, 4vh, 2.25rem);
+    font-weight: 800;
+    letter-spacing: -0.05em;
+    color: var(--on-surface);
+    margin-bottom: clamp(0.25rem, 1vh, 0.5rem);
+}
+
+.header .subtitle {
+    color: var(--on-surface-variant);
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.role-selection {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.role-label {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(229, 226, 225, 0.4);
+}
+
+.roles-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+}
+@media (min-width: 640px) {
+    .roles-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+.role-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(0.5rem, 1.5vh, 0.75rem) 0.5rem;
+    border-radius: 0.5rem;
+    background-color: var(--surface-container-low);
+    color: rgba(229, 226, 225, 0.6);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.role-btn:hover {
+    background-color: var(--surface-container);
+    color: var(--on-surface);
+}
+
+.role-btn.active {
+    background-color: var(--surface-container-high);
+    border-color: rgba(245, 130, 32, 0.4);
+    color: var(--primary-container);
+}
+
+.role-btn .material-symbols-outlined {
+    font-size: 1.125rem;
+    margin-bottom: 0.25rem;
+}
+
+.role-btn span:last-child {
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: -0.05em;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.75rem, 2vh, 1.5rem);
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+}
+
+.input-group label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--on-surface-variant);
+    margin-left: 0.25rem;
+}
+
+.label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 0.25rem;
+}
+
+.forgot-link {
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: -0.05em;
+    color: var(--primary-container);
+    text-decoration: none;
+    transition: opacity 0.2s;
+}
+
+.forgot-link:hover {
+    opacity: 0.8;
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-wrapper .icon {
+    position: absolute;
+    left: 1rem;
+    color: rgba(229, 226, 225, 0.3);
+    font-size: 1.125rem;
+    pointer-events: none;
+    transition: color 0.2s;
+}
+
+.input-wrapper input:focus + .icon,
+.input-wrapper:focus-within .icon { 
+    color: var(--primary-container);
+}
+
+.input-wrapper input {
+    width: 100%;
+    background-color: var(--surface-container-lowest);
+    border: none;
+    border-radius: 0.75rem;
+    padding: clamp(0.75rem, 2vh, 1rem) 1rem clamp(0.75rem, 2vh, 1rem) 3rem;
+    color: var(--on-surface);
+    font-size: 0.875rem;
+    outline: none;
+    transition: all 0.2s;
+    font-family: 'Sora', sans-serif;
+}
+
+.input-wrapper input::placeholder {
+    color: rgba(229, 226, 225, 0.2);
+}
+
+.input-wrapper input:focus {
+    box-shadow: inset 0 0 0 1px rgba(245, 130, 32, 0.4);
+}
+
+.submit-btn {
+    margin-top: 15px;
+    width: 100%;
+    padding: 1rem;
+    background: linear-gradient(to right, var(--primary), var(--primary-container));
+    color: var(--on-primary-container);
+    font-family: 'Sora', sans-serif;
+    font-weight: 800;
+    font-size: 1rem;
+    border: none;
+    border-radius: 0.75rem;
+    cursor: pointer;
+    box-shadow: 0 10px 15px -3px rgba(245, 130, 32, 0.1), 0 4px 6px -2px rgba(245, 130, 32, 0.05);
+    transition: transform 0.1s;
+}
+
+.submit-btn:active {
+    transform: scale(0.98);
+}
+
+.footer {
+    padding-top: clamp(1rem, 3vh, 2rem);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border-top: 1px solid rgba(86, 67, 54, 0.1);
+}
+
+@media (min-width: 640px) {
+    .footer {
+        flex-direction: row;
+    }
+}
+
+.status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    background-color: #22c55e;
+    border-radius: 50%;
+}
+
+.status-text, .links a {
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(229, 226, 225, 0.4);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.links {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.links a:hover {
+    color: var(--primary);
+}
+
+/* Login error message */
+.login-error {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background-color: rgba(255, 180, 171, 0.08);
+    border: 1px solid rgba(255, 180, 171, 0.25);
+    border-radius: 0.5rem;
+    color: var(--error);
+    font-size: 0.8125rem;
+    font-weight: 600;
+}
+
+/* Shake animation for role grid */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    15% { transform: translateX(-6px); }
+    30% { transform: translateX(5px); }
+    45% { transform: translateX(-4px); }
+    60% { transform: translateX(3px); }
+    75% { transform: translateX(-2px); }
+}
+
+.roles-grid.shake {
+    animation: shake 0.5s ease-in-out;
+}

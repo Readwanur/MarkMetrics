@@ -1,0 +1,865 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+    --bg-dark: #1C1B1B;
+    /* Main background */
+    --bg-card: #201F1F;
+    /* Card background */
+    --border-color: #2b2b36;
+    --text-primary: #E5E2E1;
+    --text-secondary: #8f8f9d;
+    --primary-orange: #F58220;
+    --primary-orange-hover: #d5701a;
+
+    /* Specific Colors from design */
+    --color-green: #00d26a;
+    --color-red: #ff3b3b;
+    --color-blue: #3b82f6;
+    --color-yellow: #f59e0b;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
+
+body {
+    display: flex;
+    min-height: 100vh;
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+    overflow-x: hidden;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 250px;
+    background-color: var(--bg-dark);
+    border-right: 1px solid var(--border-color);
+    padding: 30px 20px;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    height: 100vh;
+    overflow-y: auto;
+    z-index: 100;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 50px;
+}
+
+.logo-icon {
+    color: var(--primary-orange);
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -2px;
+}
+
+.logo-text {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--primary-orange);
+}
+
+.menu {
+    list-style: none;
+    flex: 1;
+}
+
+.menu-title {
+    color: var(--text-secondary);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    margin-top: 20px;
+    padding-left: 10px;
+}
+
+.menu>li {
+    margin-bottom: 4px;
+    border-radius: 6px;
+}
+
+.menu>li>a {
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.menu>li>a:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+}
+
+.menu>li.active>a,
+.menu>li>a.active {
+    color: var(--primary-orange);
+    border-right: 3px solid var(--primary-orange);
+    border-radius: 6px 0 0 6px;
+    margin-right: -20px;
+    padding-right: 34px;
+}
+
+.text-orange {
+    color: var(--primary-orange) !important;
+}
+
+/* Dropdown & Submenu */
+.submenu {
+    list-style: none;
+    padding-left: 36px;
+    margin-top: 5px;
+    display: none;
+}
+
+.submenu.show {
+    display: block;
+}
+
+.submenu li {
+    margin-bottom: 4px;
+}
+
+.submenu a {
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-size: 13px;
+    display: block;
+    padding: 8px 10px;
+    border-radius: 6px;
+    transition: 0.2s;
+}
+
+.submenu a:hover {
+    color: var(--text-primary);
+}
+
+.submenu a.active {
+    background-color: var(--primary-orange);
+    color: #fff;
+}
+
+/* Profile Box in Sidebar */
+.profile-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background-color: var(--bg-card);
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: auto;
+}
+
+.profile-box img {
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    object-fit: cover;
+}
+
+.profile-info h4 {
+    font-size: 13px;
+    margin-bottom: 2px;
+    font-weight: 600;
+}
+
+.profile-info p {
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.logout-btn-container {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.logout-btn {
+    background-color: var(--primary-orange);
+    color: #fff;
+    border: none;
+    padding: 8px 24px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Main Content Area */
+.main-content {
+    flex: 1;
+    margin-left: 250px;
+    padding: 40px;
+    max-width: calc(100vw - 250px);
+    display: flex;
+    flex-direction: column;
+}
+
+/* Page Header */
+.page-header {
+    margin-bottom: 30px;
+}
+
+.page-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.page-header p {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+/* Buttons */
+.btn-orange {
+    background: var(--primary-orange);
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-orange:hover {
+    background: var(--primary-orange-hover);
+}
+
+.btn-dark {
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 13px;
+    cursor: pointer;
+    transition: 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-dark:hover {
+    color: var(--text-primary);
+    border-color: var(--text-secondary);
+}
+
+/* Stats Row for Grade Management / Withdraw */
+.stats-row {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    flex: 1;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.stat-card.orange {
+    border-left: 3px solid var(--primary-orange);
+}
+
+.stat-card.red {
+    border-left: 3px solid var(--color-red);
+}
+
+.stat-card.green {
+    border-left: 3px solid var(--color-green);
+}
+
+.stat-card h4 {
+    color: var(--text-secondary);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+}
+
+.stat-card h2 {
+    font-size: 32px;
+    font-weight: 700;
+}
+
+.stat-card.orange h2 {
+    color: var(--primary-orange);
+}
+
+.stat-card.red h2 {
+    color: var(--color-red);
+}
+
+.stat-card.green h2 {
+    color: var(--color-green);
+}
+
+.stat-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+
+.stat-card.orange .stat-icon {
+    background: rgba(255, 107, 0, 0.1);
+    color: var(--primary-orange);
+}
+
+.stat-card.red .stat-icon {
+    background: rgba(255, 59, 59, 0.1);
+    color: var(--color-red);
+}
+
+.stat-card.green .stat-icon {
+    background: rgba(0, 210, 106, 0.1);
+    color: var(--color-green);
+}
+
+/* Marks Entry specific Top Stats */
+.marks-stats-row {
+    display: flex;
+    gap: 30px;
+    align-items: center;
+}
+
+.marks-stat {
+    border-left: 2px solid;
+    padding-left: 15px;
+}
+
+.marks-stat.orange {
+    border-color: var(--primary-orange);
+}
+
+.marks-stat.blue {
+    border-color: var(--color-blue);
+}
+
+.marks-stat.red {
+    border-color: var(--color-red);
+}
+
+.marks-stat h4 {
+    font-size: 11px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.marks-stat h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+/* Two Column Layout (Marks Entry sidebar) */
+.layout-with-sidebar {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 20px;
+}
+
+/* Tables */
+.table-container {
+    background: var(--bg-card);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+}
+
+.table-header-actions {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.table-actions-left,
+.table-actions-right {
+    display: flex;
+    gap: 10px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    padding: 15px 20px;
+    text-align: left;
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border-color);
+}
+
+td {
+    padding: 15px 20px;
+    font-size: 13px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    color: var(--text-primary);
+    vertical-align: middle;
+}
+
+tbody tr:last-child td {
+    border-bottom: none;
+}
+
+tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+/* Badges */
+.badge {
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    display: inline-block;
+}
+
+.badge-green {
+    background: var(--color-green);
+    color: #000;
+}
+
+.badge-orange {
+    background: var(--primary-orange);
+    color: #000;
+}
+
+.badge-red {
+    background: var(--color-red);
+    color: #fff;
+}
+
+.badge-dark {
+    background: #2a2a35;
+    color: var(--text-secondary);
+}
+
+/* Circle Initials for Students */
+.student-col {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.student-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #3a3a48;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.student-name {
+    color: var(--text-primary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: 0.2s;
+}
+
+.student-name:hover {
+    color: var(--primary-orange);
+}
+
+/* Table Pagination */
+.pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-top: 1px solid var(--border-color);
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.page-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.page-numbers {
+    display: flex;
+    gap: 5px;
+}
+
+.page-btn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.page-btn.active {
+    background: var(--primary-orange);
+    color: #fff;
+}
+
+.next-page {
+    color: var(--primary-orange);
+    font-weight: 600;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Marks Entry Change Log */
+.change-log-panel {
+    background: var(--bg-card);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    padding: 20px;
+}
+
+.change-log-panel h3 {
+    font-size: 16px;
+    margin-bottom: 20px;
+}
+
+.log-item {
+    margin-bottom: 20px;
+    position: relative;
+    padding-left: 20px;
+}
+
+.log-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 5px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--primary-orange);
+}
+
+.log-item h4 {
+    font-size: 13px;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.log-item p {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+    line-height: 1.4;
+}
+
+.log-item span {
+    font-size: 10px;
+    color: #5a5a6a;
+    text-transform: uppercase;
+}
+
+/* Student History Page Layout */
+.history-layout {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.cgpa-card {
+    background: var(--bg-card);
+    border: 2px solid var(--primary-orange);
+    border-radius: 12px;
+    padding: 30px;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(255, 107, 0, 0.1);
+    position: absolute;
+    right: 40px;
+    top: 40px;
+    width: 200px;
+}
+
+.cgpa-card h4 {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+}
+
+.cgpa-card h1 {
+    font-size: 42px;
+    color: var(--text-primary);
+    margin-bottom: 5px;
+}
+
+.cgpa-card p {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.cgpa-view-btn {
+    display: inline-block;
+    color: var(--primary-orange);
+    font-weight: 600;
+    font-size: 14px;
+    margin-top: 20px;
+    text-decoration: none;
+}
+
+.academic-alerts {
+    background: var(--bg-card);
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.alert-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.alert-header h3 {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.alert-item {
+    border-left: 2px solid var(--primary-orange);
+    padding-left: 15px;
+    margin-bottom: 20px;
+}
+
+.alert-item.blue {
+    border-color: var(--color-blue);
+}
+
+.alert-item h4 {
+    font-size: 13px;
+    margin-bottom: 5px;
+}
+
+.alert-item p {
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+/* Semester Summary Cards */
+.semester-summaries {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.semester-card {
+    background: var(--bg-card);
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+}
+
+.semester-card h4 {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+.semester-card h2 {
+    font-size: 28px;
+    margin-bottom: 5px;
+}
+
+.semester-card p {
+    font-size: 12px;
+}
+
+.semester-card p.blue {
+    color: var(--color-blue);
+}
+
+.semester-card p.orange {
+    color: var(--primary-orange);
+}
+
+/* Academic Performance Page */
+.perf-stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.perf-stat-card {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 25px;
+}
+
+.perf-stat-card h4 {
+    font-size: 11px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    margin-bottom: 15px;
+}
+
+.perf-stat-card h2 {
+    font-size: 42px;
+    color: var(--primary-orange);
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+}
+
+.perf-stat-card h2.white {
+    color: #fff;
+}
+
+.perf-stat-card h2 span {
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.charts-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.chart-container {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 25px;
+}
+
+.chart-container h3 {
+    font-size: 18px;
+    margin-bottom: 20px;
+}
+
+/* Withdraw Management Accordion */
+.accordion-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-bottom: 15px;
+    overflow: hidden;
+}
+
+.accordion-header {
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
+
+.accordion-header-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.course-icon {
+    width: 40px;
+    height: 40px;
+    background: #2a2a35;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-orange);
+    font-size: 18px;
+}
+
+.course-icon.blue {
+    color: var(--color-blue);
+}
+
+.accordion-title h3 {
+    font-size: 15px;
+    margin-bottom: 4px;
+}
+
+.accordion-title p {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.accordion-stats {
+    text-align: right;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.accordion-content {
+    border-top: 1px solid var(--border-color);
+    display: none;
+}
+
+.accordion-item.active .accordion-content {
+    display: block;
+}
+
+/* Specific colored text */
+.text-orange {
+    color: var(--primary-orange) !important;
+}
+
+.text-blue {
+    color: var(--color-blue) !important;
+}
+
+/* inputs for marks entry */
+.mark-input {
+    background: #111;
+    border: 1px solid var(--border-color);
+    color: #fff;
+    width: 50px;
+    padding: 6px;
+    text-align: center;
+    border-radius: 4px;
+}

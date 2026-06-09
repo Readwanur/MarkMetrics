@@ -1,0 +1,221 @@
+<?php
+session_start();
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'teacher') {
+    header("Location: ../../LoginPage/Login/login.php");
+    exit();
+}
+$teacher_name = isset($_SESSION['name']) ? $_SESSION['name'] : 'Teacher';
+$teacher_email = isset($_SESSION['email']) ? $_SESSION['email'] : '';
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MarkMetrics | Teacher Portal</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="logo-container" style="justify-content: center; padding: 10px 0;">
+            <img src="../asset/logo.png" alt="MarkMetrics" style="height: 80px; max-width: 100%; object-fit: contain;">
+        </div>
+
+        <ul class="menu">
+            <li>
+                <a href="../index.php">
+                    <i class="fa-solid fa-border-all"></i> Dashboard
+                </a>
+            </li>
+
+            <li class="dropdown active">
+                <a href="#">
+                    <i class="fa-solid fa-rotate"></i> Academic Actions
+                </a>
+               <ul class="submenu show">
+                    <li>
+                        <a href="withdraw-request.php">Withdraw Requests</a>
+                    </li>
+                    <li>
+                        <a href="grade-management.php">Grade Management</a>
+                    </li>
+                    <li>
+                        <a href="academic-performance.php">Academic Performance</a>
+                    </li>
+                    <li class="active">
+                        <a href="marks-entry.php">Marks Entry</a>
+                    </li>
+                    <li>
+                        <a href="student-history.php">Student History</a>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+
+        <div class="logout-btn-container">
+            <a href="../logout.php" class="logout-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+                <span>Log Out</span>
+            </a>
+        </div>
+
+        <div class="profile-box">
+            <img src="../asset/avatar2.jpg" alt="Profile">
+            <div class="profile-info">
+                <h4><?php echo htmlspecialchars($teacher_name); ?></h4>
+                <p><?php echo htmlspecialchars($teacher_email); ?></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px;">
+            <div class="page-header" style="margin-bottom: 0; max-width: 60%;">
+                <h1>Marks Entry</h1>
+                <p>Data-intensive academic evaluation for Course: Advanced Algorithms (CSE4165). Last synced 4 minutes ago.</p>
+            </div>
+
+            <div class="marks-stats-row">
+                <div class="marks-stat orange">
+                    <h4>TOTAL STUDENTS</h4>
+                    <h2>42</h2>
+                </div>
+                <div class="marks-stat blue">
+                    <h4>PENDING MARKS</h4>
+                    <h2>05</h2>
+                </div>
+                <div class="marks-stat red">
+                    <h4>AVERAGE CGPA</h4>
+                    <h2>3.22</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="layout-with-sidebar">
+            
+            <!-- Left side: Table -->
+            <div class="table-container">
+                <div class="table-header-actions">
+                    <div class="table-actions-left">
+                        <button class="btn-dark"><i class="fa-solid fa-filter"></i> Filter</button>
+                        <button class="btn-dark"><i class="fa-solid fa-sort"></i> Sort</button>
+                    </div>
+                    <div class="table-actions-right">
+                        <button class="btn-orange"><i class="fa-solid fa-save"></i> Save Changes</button>
+                        <button class="btn-dark"><i class="fa-solid fa-file-pdf"></i> Generate PDF Report Card</button>
+                    </div>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>STUDENT ID</th>
+                            <th>STUDENT NAME</th>
+                            <th>MIDTERM (30)</th>
+                            <th>FINAL (40)</th>
+                            <th>TOTAL</th>
+                            <th>GRADE</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="color: var(--text-secondary);">0112330784</td>
+                            <td>
+                                <a href="student-history.php" class="student-name student-col">
+                                    <div class="student-avatar">NR</div>
+                                    Readwan Rumon
+                                </a>
+                            </td>
+                            <td><input type="text" class="mark-input" value="38"></td>
+                            <td><input type="text" class="mark-input" value="56"></td>
+                            <td>94</td>
+                            <td><span class="badge badge-orange">A+</span></td>
+                        </tr>
+                        <tr>
+                            <td style="color: var(--text-secondary);">0112330682</td>
+                            <td>
+                                <a href="student-history.php" class="student-name student-col">
+                                    <div class="student-avatar">BR</div>
+                                    Ashraful Rafi
+                                </a>
+                            </td>
+                            <td><input type="text" class="mark-input" value="--"></td>
+                            <td><input type="text" class="mark-input" value="48"></td>
+                            <td>--</td>
+                            <td><span class="badge badge-dark">INC</span></td>
+                        </tr>
+                        <tr>
+                            <td style="color: var(--text-secondary);">0112330791</td>
+                            <td>
+                                <a href="student-history.php" class="student-name student-col">
+                                    <div class="student-avatar">TM</div>
+                                    Billah Maruf
+                                </a>
+                            </td>
+                            <td><input type="text" class="mark-input" value="32"></td>
+                            <td><input type="text" class="mark-input" value="42"></td>
+                            <td>74</td>
+                            <td><span class="badge" style="background: rgba(255,59,59,0.1); color: var(--color-red);">B-</span></td>
+                        </tr>
+                        <tr>
+                            <td style="color: var(--text-secondary);">0112330811</td>
+                            <td>
+                                <a href="student-history.php" class="student-name student-col">
+                                    <div class="student-avatar">SE</div>
+                                    Khalad Emon
+                                </a>
+                            </td>
+                            <td><input type="text" class="mark-input" value="28"></td>
+                            <td><input type="text" class="mark-input" value="45"></td>
+                            <td>63</td>
+                            <td><span class="badge" style="background: rgba(59,130,246,0.1); color: var(--color-blue);">C+</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Right side: Change Log -->
+            <div class="change-log-panel">
+                <h3>Change Log</h3>
+                
+                <div class="log-item">
+                    <h4>Mark Updated</h4>
+                    <p>Student: Nerd Romoan<br>-Final Exam(+5)</p>
+                    <span>2 MINS AGO</span>
+                </div>
+                
+                <div class="log-item">
+                    <h4>Batch Export</h4>
+                    <p>Section A-Full report Card Generated</p>
+                    <span>45 MINS AGO</span>
+                </div>
+                
+                <div class="log-item">
+                    <h4>New Grade Entry</h4>
+                    <p>Student: Banana Rafi-<br>Midterm Exam</p>
+                    <span>1 HOURS AGO</span>
+                </div>
+                
+                <div class="log-item">
+                    <h4>Session Start</h4>
+                    <p>Professor Mahi logged in</p>
+                    <span>3 HOURS AGO</span>
+                </div>
+
+                <button class="btn-dark" style="width: 100%; justify-content: center; margin-top: 10px;">VIEW ALL ACTIVITY</button>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script src="../script.js"></script>
+</body>
+</html>

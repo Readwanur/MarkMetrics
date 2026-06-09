@@ -1,0 +1,233 @@
+<?php
+session_start();
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'teacher') {
+    header("Location: ../../LoginPage/Login/login.php");
+    exit();
+}
+$teacher_name = isset($_SESSION['name']) ? $_SESSION['name'] : 'Teacher';
+$teacher_email = isset($_SESSION['email']) ? $_SESSION['email'] : '';
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MarkMetrics | Teacher Portal</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="logo-container" style="justify-content: center; padding: 10px 0;">
+            <img src="../asset/logo.png" alt="MarkMetrics" style="height: 80px; max-width: 100%; object-fit: contain;">
+        </div>
+
+        <ul class="menu">
+            <li>
+                <a href="../index.php">
+                    <i class="fa-solid fa-border-all"></i> Dashboard
+                </a>
+            </li>
+
+            <li class="dropdown active">
+                <a href="#" class="active">
+                    <i class="fa-solid fa-rotate"></i> Academic Actions
+                </a>
+                <ul class="submenu show">
+                    <li>
+                        <a href="withdraw-request.php">Withdraw Requests</a>
+                    </li>
+                    <li>
+                        <a href="grade-management.php">Grade Management</a>
+                    </li>
+                    <li>
+                        <a href="academic-performance.php">Academic Performance</a>
+                    </li>
+                    <li>
+                        <a href="marks-entry.php">Marks Entry</a>
+                    </li>
+                    <li>
+                        <a href="student-history.php">Student History</a>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+
+        <div class="logout-btn-container">
+            <a href="../logout.php" class="logout-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+                <span>Log Out</span>
+            </a>
+        </div>
+
+        <div class="profile-box">
+            <img src="../asset/avatar2.jpg" alt="Profile">
+            <div class="profile-info">
+                <h4><?php echo htmlspecialchars($teacher_name); ?></h4>
+                <p><?php echo htmlspecialchars($teacher_email); ?></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        
+        <div class="page-header">
+            <h1>Withdraw Management</h1>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-card orange">
+                <div>
+                    <h4>PENDING REQUESTS</h4>
+                    <h2>07</h2>
+                </div>
+                <div class="stat-icon"><i class="fa-regular fa-clipboard"></i></div>
+            </div>
+
+            <div class="stat-card red">
+                <div>
+                    <h4>DISMISSED</h4>
+                    <h2>10</h2>
+                </div>
+                <div class="stat-icon"><i class="fa-regular fa-circle-xmark"></i></div>
+            </div>
+
+            <div class="stat-card blue" style="border-left: 3px solid var(--color-blue);">
+                <div>
+                    <h4>APPROVED</h4>
+                    <h2 style="color: var(--color-blue);">15</h2>
+                </div>
+                <div class="stat-icon" style="background: rgba(59,130,246,0.1); color: var(--color-blue);"><i class="fa-regular fa-circle-check"></i></div>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px;">
+            <h3 style="font-size: 18px;">Semester Course Load</h3>
+            <p style="color: var(--text-secondary); font-size: 12px;">Fall 2023 Academic Year</p>
+        </div>
+
+        <!-- Accordion 1 (Expanded) -->
+        <div class="accordion-item active">
+            <div class="accordion-header" style="border-bottom: 1px solid var(--border-color);">
+                <div class="accordion-header-left">
+                    <div class="course-icon"><i class="fa-solid fa-code"></i></div>
+                    <div class="accordion-title">
+                        <h3>CSE 1111: Structure Programming Language</h3>
+                        <p>Section B</p>
+                    </div>
+                </div>
+                <div class="accordion-stats" style="display: flex; align-items: center; gap: 20px;">
+                    <div style="text-align: right;">
+                        <div style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase;"></div>
+                        <div style="font-size: 16px;">3 Students</div>
+                    </div>
+                    <i class="fa-solid fa-chevron-up"></i>
+                </div>
+            </div>
+            
+            <div class="accordion-content" style="display: block; background: #1a1a20;">
+                <table style="background: transparent;">
+                    <thead>
+                        <tr style="background: #24242d;">
+                            <th>Student id</th>
+                            <th>STUDENT DETAILS</th>
+                            <th>Mid Marks</th>
+                            <th>STATUS</th>
+                            <th style="text-align: right;">ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="font-weight: 700;">0112339791</td>
+                            <td>
+                                <div class="student-col">
+                                    <div class="student-avatar" style="background: #333;">JS</div>
+                                    <span style="font-weight: 600;">Julian V. Sterling</span>
+                                </div>
+                            </td>
+                            <td style="font-weight: 700;">07</td>
+                            <td><span class="badge" style="background: rgba(59,130,246,0.2); color: var(--color-blue);">VERIFIED</span></td>
+                            <td style="text-align: right;"><i class="fa-solid fa-ellipsis-vertical" style="color: var(--text-secondary); cursor: pointer; padding: 0 10px;"></i></td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: 700;">0112330077</td>
+                            <td>
+                                <div class="student-col">
+                                    <div class="student-avatar" style="background: #333;">AK</div>
+                                    <span style="font-weight: 600;">Amara K. Vance</span>
+                                </div>
+                            </td>
+                            <td style="font-weight: 700;">10</td>
+                            <td><span class="badge" style="background: rgba(255,59,59,0.2); color: var(--color-red);">AT RISK</span></td>
+                            <td style="text-align: right; color: var(--text-secondary); font-size: 16px;">
+                                <i class="fa-solid fa-xmark" style="cursor: pointer; margin-right: 15px;"></i>
+                                <i class="fa-solid fa-check-double" style="cursor: pointer;"></i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: 700;">0112331077</td>
+                            <td>
+                                <div class="student-col">
+                                    <div class="student-avatar" style="background: #333;">EM</div>
+                                    <span style="font-weight: 600;">Elias Miller</span>
+                                </div>
+                            </td>
+                            <td style="font-weight: 700;">20.5</td>
+                            <td><span class="badge" style="background: rgba(255,107,0,0.2); color: var(--primary-orange);">REVIEW</span></td>
+                            <td style="text-align: right;"><i class="fa-solid fa-ellipsis-vertical" style="color: var(--text-secondary); cursor: pointer; padding: 0 10px;"></i></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Accordion 2 -->
+        <div class="accordion-item">
+            <div class="accordion-header">
+                <div class="accordion-header-left">
+                    <div class="course-icon blue" style="background: #1e293b;"><i class="fa-solid fa-database"></i></div>
+                    <div class="accordion-title">
+                        <h3>CSE-3521: Database Management System</h3>
+                        <p>Section A</p>
+                    </div>
+                </div>
+                <div class="accordion-stats" style="display: flex; align-items: center; gap: 20px;">
+                    <div style="font-size: 16px;">8 Students</div>
+                    <i class="fa-solid fa-chevron-down" style="color: var(--text-secondary);"></i>
+                </div>
+            </div>
+            <div class="accordion-content">
+                <p style="padding: 20px; color: var(--text-secondary);">Content loaded dynamically.</p>
+            </div>
+        </div>
+
+        <!-- Accordion 3 -->
+        <div class="accordion-item">
+            <div class="accordion-header">
+                <div class="accordion-header-left">
+                    <div class="course-icon" style="color: #c2410c; background: #3f180d;"><i class="fa-solid fa-building-columns"></i></div>
+                    <div class="accordion-title">
+                        <h3>CSE-3522: Database Management System Labrotory</h3>
+                        <p>Section C</p>
+                    </div>
+                </div>
+                <div class="accordion-stats" style="display: flex; align-items: center; gap: 20px;">
+                    <div style="font-size: 16px;">5 Students</div>
+                    <i class="fa-solid fa-chevron-down" style="color: var(--text-secondary);"></i>
+                </div>
+            </div>
+            <div class="accordion-content">
+                <p style="padding: 20px; color: var(--text-secondary);">Content loaded dynamically.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="../script.js"></script>
+</body>
+</html>
