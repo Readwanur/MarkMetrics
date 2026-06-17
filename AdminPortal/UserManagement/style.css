@@ -119,15 +119,26 @@ body {
   margin-top: auto;
 }
 
-/* Logout button - matching Student Portal style */
+/* Logout button - orange pill matching teacher portal */
 .sidebar-footer .nav-item.logout-btn {
-  color: var(--text-secondary);
-  transition: all 0.2s ease;
+  margin: 0 16px 4px;
+  background-color: var(--accent-orange);
+  color: #fff !important;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-weight: 600;
+  font-size: 13px;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none;
 }
 
 .sidebar-footer .nav-item.logout-btn:hover {
-  color: var(--text-primary);
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: var(--accent-orange-hover) !important;
+  color: #fff !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(243, 112, 33, 0.35);
 }
 
 /* User Profile in Sidebar */
@@ -195,25 +206,37 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  background-color: #27272a;
+  background-color: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 10px 16px;
+  border-radius: 40px;
+  padding: 10px 20px;
   width: 380px;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease;
+}
+
+.search-bar:focus-within {
+  border-color: var(--accent-orange);
+  box-shadow: 0 0 0 3px rgba(243, 112, 33, 0.12), 0 4px 16px rgba(0,0,0,0.3);
+  background-color: rgba(255, 255, 255, 0.07);
 }
 
 .search-bar svg {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   color: var(--text-muted);
   flex-shrink: 0;
+  transition: color 0.2s;
+}
+
+.search-bar:focus-within svg {
+  color: var(--accent-orange);
 }
 
 .search-bar input {
   background: none;
   border: none;
   outline: none;
-  color: var(--text-secondary);
+  color: var(--text-primary);
   font-size: 14px;
   width: 100%;
   font-family: "Inter", sans-serif;
@@ -242,21 +265,29 @@ body {
   font-size: 13px;
 }
 
+/* Unified Notification Button Styling */
 .notification-btn {
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  cursor: pointer;
-  position: relative;
-  padding: 6px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.2s;
+  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.03);
+  cursor: pointer;
+  position: relative;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+  padding: 0;
+  outline: none;
 }
 
 .notification-btn:hover {
+  border-color: var(--accent-orange);
   color: var(--text-primary);
+  transform: scale(1.05);
+  background: rgba(243, 112, 33, 0.05);
 }
 
 .notification-btn svg {
@@ -264,30 +295,21 @@ body {
   height: 22px;
 }
 
+/* Unified Notification Badge */
 .notification-badge {
   position: absolute;
-  top: 2px;
-  right: 2px;
+  top: -2px;
+  right: -2px;
   width: 8px;
   height: 8px;
   background-color: var(--accent-orange);
   border-radius: 50%;
   border: 2px solid #111111;
+  box-shadow: 0 0 8px rgba(243, 112, 33, 0.6);
 }
 
 .top-bar-brand {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--accent-orange);
-}
-
-.top-bar-brand .version {
-  font-size: 10px;
-  color: var(--text-muted);
-  font-weight: 400;
+  display: none;
 }
 
 /* ===== Content Wrapper ===== */
@@ -756,3 +778,169 @@ body {
     padding: 20px;
   }
 }
+
+/* --- Search Bar & Search Container Styling --- */
+.search-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.search-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: #27272a;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px 16px;
+    width: 380px;
+    position: relative;
+}
+
+/* --- Search Suggestions Dropdown --- */
+.search-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-top: 8px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    z-index: 1000;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.suggestion-item {
+    padding: 12px 16px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.suggestion-item:hover {
+    background-color: rgba(255,255,255,0.05);
+}
+
+.suggestion-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.suggestion-id {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+/* --- Modal Overlay & Content --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: var(--card-bg);
+    width: 90%;
+    max-width: 500px;
+    border-radius: 12px;
+    padding: 24px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    position: relative;
+    animation: modalFadeIn 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.modal-close:hover {
+    color: var(--accent-red);
+}
+
+.modal-header {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 16px;
+    margin-bottom: 16px;
+}
+
+.modal-header h2 {
+    margin: 0 0 8px 0;
+    color: var(--text-primary);
+    font-size: 20px;
+}
+
+.modal-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    background: var(--accent-orange-light);
+    color: var(--accent-orange);
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.modal-body {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+.modal-detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--border-color);
+}
+
+.modal-detail-row:last-child {
+    border-bottom: none;
+}
+
+.modal-detail-label {
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.modal-detail-value {
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 600;
+    text-align: right;
+}
+

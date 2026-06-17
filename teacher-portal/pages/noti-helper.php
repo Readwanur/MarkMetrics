@@ -4,7 +4,7 @@ $pending_gcr_q = mysqli_query($conn, "
     SELECT COUNT(*) AS total 
     FROM grade_correction_requests gcr 
     JOIN courses c ON gcr.course_code = c.course_code 
-    WHERE c.teacher_id = '$teacher_id' AND gcr.status = 'Pending'
+    WHERE c.teacher_id = '$teacher_id' AND gcr.status = 'Pending' AND gcr.is_read = 0
 ");
 $pending_gcr_count = mysqli_fetch_assoc($pending_gcr_q)['total'] ?? 0;
 
@@ -13,7 +13,7 @@ $pending_wr_q = mysqli_query($conn, "
     SELECT COUNT(*) AS total 
     FROM withdraw_requests wr 
     JOIN courses c ON wr.course_code = c.course_code 
-    WHERE c.teacher_id = '$teacher_id' AND wr.status = 'Pending'
+    WHERE c.teacher_id = '$teacher_id' AND wr.status = 'Pending' AND wr.is_read = 0
 ");
 $pending_wr_count = mysqli_fetch_assoc($pending_wr_q)['total'] ?? 0;
 

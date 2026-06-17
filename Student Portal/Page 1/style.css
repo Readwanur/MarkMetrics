@@ -1,3 +1,8 @@
+/* ============================================
+   GLOBAL DESIGN TOKENS / COLOR PALETTE
+   Defines all CSS custom properties used across
+   the entire dashboard for consistent theming.
+   ============================================ */
 :root {
     --bg-main: #18181b;
     --sidebar-bg: #1A1A1A;
@@ -20,6 +25,12 @@
     --border-color-light: #52525b;
 }
 
+/* ============================================
+   GLOBAL RESET
+   Strips browser defaults — no margin/padding,
+   border-box sizing, and sets Inter as the
+   base font for the entire page.
+   ============================================ */
 * {
     margin: 0;
     padding: 0;
@@ -27,6 +38,11 @@
     font-family: 'Inter', sans-serif;
 }
 
+/* ============================================
+   BODY
+   Dark background, white text, full viewport
+   height, and no horizontal scroll.
+   ============================================ */
 body {
     background-color: var(--bg-main);
     color: var(--text-primary);
@@ -36,11 +52,22 @@ body {
     overflow-x: hidden;
 }
 
+/* ============================================
+   APP LAYOUT CONTAINER
+   Flex wrapper that holds the sidebar and
+   main content side by side.
+   ============================================ */
 .app-container {
     display: flex;
     width: 100%;
 }
 
+/* ============================================
+   SIDEBAR NAVIGATION
+   Fixed 260px left panel containing the logo,
+   nav links (Overview, Grade History, Grade
+   Management), and footer (Support, Log Out).
+   ============================================ */
 .sidebar {
     width: 260px;
     background-color: var(--sidebar-bg);
@@ -55,24 +82,28 @@ body {
     z-index: 100;
 }
 
+/* Sidebar Header — holds the MarkMetrics logo */
 .sidebar-header {
     padding: 0 24px 32px;
     display: flex;
     align-items: center;
 }
 
+/* MarkMetrics logo image */
 .main-logo {
     height: 65px;
     width: auto;
     object-fit: contain;
 }
 
+/* Sidebar nav link container (vertical) */
 .sidebar-nav {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
 }
 
+/* Individual nav link — icon + label row */
 .nav-item {
     position: relative;
     display: flex;
@@ -86,16 +117,19 @@ body {
     transition: all 0.2s ease;
 }
 
+/* Nav link hover state */
 .nav-item:hover {
     color: var(--text-primary);
     background-color: rgba(255, 255, 255, 0.05);
 }
 
+/* Nav link active/selected state (orange text) */
 .nav-item.active {
     color: var(--accent-orange);
     background-color: rgba(243, 112, 33, 0.08);
 }
 
+/* Glowing orange bar on the left edge of the active nav item */
 .active-indicator {
     position: absolute;
     left: 0;
@@ -108,6 +142,7 @@ body {
     box-shadow: 2px 0 10px rgba(243, 112, 33, 0.5);
 }
 
+/* Sidebar footer — Support & Log Out links, pinned to bottom */
 .sidebar-footer {
     padding: 24px 0;
     display: flex;
@@ -117,6 +152,33 @@ body {
     margin-top: auto;
 }
 
+/* Logout button - orange pill matching management page */
+.sidebar-footer .nav-item.logout-btn {
+    margin: 4px 16px 0;
+    background-color: var(--accent-orange);
+    color: #fff !important;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-weight: 600;
+    font-size: 13px;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+}
+
+.sidebar-footer .nav-item.logout-btn:hover {
+    background-color: var(--accent-orange-hover) !important;
+    color: #fff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(243, 112, 33, 0.35);
+}
+
+/* ============================================
+   MAIN CONTENT AREA
+   The right-side panel next to the sidebar.
+   Offset by 260px (sidebar width).
+   ============================================ */
 .main-content {
     margin-left: 260px;
     flex-grow: 1;
@@ -125,6 +187,7 @@ body {
     background-color: var(--bg-main);
 }
 
+/* Centers dashboard content with a max-width */
 .content-wrapper {
     max-width: 1400px;
     margin: 0 auto;
@@ -132,6 +195,12 @@ body {
 }
 
 
+/* ============================================
+   DASHBOARD HEADER (WELCOME BANNER)
+   Top bar with "Academic MarkMetrics" title,
+   welcome message, notification bell, settings
+   gear, and user profile avatar.
+   ============================================ */
 .dashboard-header {
     display: flex;
     justify-content: space-between;
@@ -139,23 +208,29 @@ body {
     margin-bottom: 2.5rem;
 }
 
+/* Header right-side actions (bell, gear, avatar) */
 .header-actions {
     display: flex;
     align-items: center;
     gap: 16px;
 }
 
+/* Unified Notification Button Styling */
 .icon-btn {
-    background: none;
-    border: none;
-    color: var(--text-secondary);
-    cursor: pointer;
-    position: relative;
-    padding: 8px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: color 0.2s;
+    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.03);
+    cursor: pointer;
+    position: relative;
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
+    padding: 0;
+    outline: none;
 }
 
 .icon-btn i {
@@ -163,19 +238,26 @@ body {
 }
 
 .icon-btn:hover {
+    border-color: var(--accent-orange);
     color: var(--text-primary);
+    transform: scale(1.05);
+    background: rgba(243, 112, 33, 0.05);
 }
 
+/* Unified Notification Badge */
 .notification-dot {
     position: absolute;
-    top: 6px;
-    right: 6px;
-    width: 6px;
-    height: 6px;
-    background: var(--accent-orange);
+    top: -2px;
+    right: -2px;
+    width: 8px;
+    height: 8px;
+    background-color: var(--accent-orange);
     border-radius: 50%;
+    border: 2px solid var(--bg-main);
+    box-shadow: 0 0 8px rgba(243, 112, 33, 0.6);
 }
 
+/* User profile avatar (rounded image) */
 .user-avatar {
     width: 40px;
     height: 40px;
@@ -197,6 +279,7 @@ body {
     transform: scale(1.05);
 }
 
+/* "Academic MarkMetrics" heading */
 .header-titles h1 {
     font-size: 2.5rem;
     font-weight: 800;
@@ -205,23 +288,31 @@ body {
     letter-spacing: -0.02em;
 }
 
+/* Welcome subtitle text */
 .header-titles p {
     color: #a1a1aa;
     font-size: 1.05rem;
     font-weight: 400;
 }
 
+/* Orange-highlighted student name in the welcome message */
 .header-titles p .highlight {
     color: var(--accent-orange);
     font-weight: 500;
 }
 
 
+/* Header actions (duplicate/override with different gap) */
 .header-actions {
     display: flex;
     gap: 1rem;
 }
 
+/* ============================================
+   REUSABLE BUTTON STYLES
+   Base button + primary (orange) and secondary
+   (gray) variants.
+   ============================================ */
 .btn {
     padding: 0.75rem 1.25rem;
     border-radius: 0.5rem;
@@ -251,6 +342,11 @@ body {
 }
 
 
+/* ============================================
+   BASE CARD COMPONENT
+   Dark card with rounded corners and shadow.
+   Used as the base for all dashboard cards.
+   ============================================ */
 .card {
     background-color: var(--card-bg);
     border-radius: 0.75rem;
@@ -262,6 +358,11 @@ body {
 }
 
 
+/* ============================================
+   TOP 3 STAT CARDS ROW
+   3-column grid: Cumulative GPA | Credits
+   Earned | Current Semester
+   ============================================ */
 .top-cards-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -269,18 +370,22 @@ body {
     margin-bottom: 1.5rem;
 }
 
+/* Orange left border — used on the CUMULATIVE GPA card */
 .border-orange {
     border-left: 4px solid var(--accent-orange);
 }
 
+/* Blue left border — used on the CREDITS EARNED card */
 .border-blue {
     border-left: 4px solid var(--accent-blue);
 }
 
+/* Brown left border — used on the CURRENT SEMESTER card */
 .border-brown {
     border-left: 4px solid var(--accent-brown);
 }
 
+/* Card header row — title label + icon (e.g., "CUMULATIVE GPA" + graduation cap) */
 .card-header {
     display: flex;
     justify-content: space-between;
@@ -292,24 +397,29 @@ body {
     margin-bottom: 1rem;
 }
 
+/* Large icon in card header (e.g., graduation cap on GPA card) */
 .card-icon-large {
     font-size: 2rem;
     color: #3f3f46;
 
 }
 
+/* ---- CUMULATIVE GPA CARD ----
+   Large number display (e.g., "3.85") */
 .large-value {
     font-size: 3rem;
     font-weight: 700;
     line-height: 1;
 }
 
+/* Muted portion of value (e.g., "/138" in credits) */
 .value-muted {
     font-size: 1rem;
     color: var(--text-secondary);
     font-weight: 500;
 }
 
+/* GPA card body — holds the GPA value + change indicator */
 .gpa-body {
     display: flex;
     align-items: baseline;
@@ -317,22 +427,27 @@ body {
     margin-bottom: 1.5rem;
 }
 
+/* Blue "+0.12" change text next to GPA value */
 .change-indicator {
     color: var(--accent-blue);
     font-weight: 600;
     font-size: 0.95rem;
 }
 
+/* Card footer text (e.g., "Top 15% of Department") */
 .card-footer {
     font-size: 0.8rem;
     color: var(--text-secondary);
     margin-top: auto;
 }
 
+/* ---- CREDITS EARNED CARD ----
+   Body of the credits card */
 .credits-body {
     margin-bottom: 1rem;
 }
 
+/* Credits progress bar — track (gray background) */
 .progress-bar-container {
     width: 100%;
     height: 4px;
@@ -342,6 +457,7 @@ body {
     overflow: hidden;
 }
 
+/* Credits progress bar — fill (blue, animated width) */
 .progress-bar-fill {
     height: 100%;
     background-color: var(--accent-blue);
@@ -350,6 +466,8 @@ body {
 }
 
 
+/* ---- CURRENT SEMESTER CARD ----
+   Semester card body — icon box + semester details */
 .semester-body {
     display: flex;
     align-items: center;
@@ -357,6 +475,7 @@ body {
     margin-bottom: 1.5rem;
 }
 
+/* Brown icon box with book icon */
 .semester-icon-box {
     width: 50px;
     height: 50px;
@@ -369,22 +488,30 @@ body {
     font-size: 1.5rem;
 }
 
+/* Semester name (e.g., "Fall 2025") */
 .medium-value {
     font-size: 1.5rem;
     font-weight: 600;
     margin-bottom: 0.2rem;
 }
 
+/* Secondary text (e.g., "6 Courses Enrolled") */
 .muted-text {
     font-size: 0.85rem;
     color: var(--text-secondary);
 }
 
+/* Italic footer text (e.g., "Next exam: ...") */
 .italic-text {
     font-style: italic;
 }
 
 
+/* ============================================
+   MIDDLE SECTION — 2-COLUMN LAYOUT
+   Left (2fr): Performance Velocity bar chart
+   Right (1fr): Pending Exams list
+   ============================================ */
 .middle-section-grid {
     display: grid;
     grid-template-columns: 2fr 1fr;
@@ -393,12 +520,15 @@ body {
 }
 
 
+/* Section titles for chart and exams cards */
 .chart-card h3,
 .pending-exams-card h3 {
     font-size: 1.15rem;
     font-weight: 600;
 }
 
+/* ---- PERFORMANCE VELOCITY BAR CHART ----
+   Chart header — title + legend */
 .chart-header {
     display: flex;
     justify-content: space-between;
@@ -406,6 +536,7 @@ body {
     margin-bottom: 2rem;
 }
 
+/* Legend — orange dot = Major GPA, blue dot = Overall */
 .chart-legend {
     display: flex;
     gap: 1rem;
@@ -413,12 +544,14 @@ body {
     color: var(--text-secondary);
 }
 
+/* Individual legend entry (dot + label) */
 .legend-item {
     display: flex;
     align-items: center;
     gap: 0.4rem;
 }
 
+/* Colored circle in the legend */
 .legend-dot {
     width: 8px;
     height: 8px;
@@ -433,6 +566,7 @@ body {
     background-color: var(--accent-blue);
 }
 
+/* Chart body — holds Y-axis labels + bar groups */
 .chart-area {
     display: flex;
     height: 220px;
@@ -440,6 +574,7 @@ body {
     padding-left: 2rem;
 }
 
+/* Y-axis labels (4.0, 3.0, 2.0, 1.0, 0.0) */
 .chart-y-axis {
     display: flex;
     flex-direction: column;
@@ -452,6 +587,7 @@ body {
     font-size: 0.75rem;
 }
 
+/* Container for all bar groups, aligned to bottom */
 .chart-bars {
     display: flex;
     justify-content: space-around;
@@ -461,6 +597,7 @@ body {
     border-bottom: 1px solid var(--border-color);
 }
 
+/* Single bar group (one semester column) */
 .bar-group {
     display: flex;
     flex-direction: column;
@@ -470,6 +607,7 @@ body {
     position: relative;
 }
 
+/* Wrapper positioning the stacked bars */
 .bar-wrapper {
     width: 100%;
     height: 100%;
@@ -478,6 +616,7 @@ body {
     align-items: flex-end;
 }
 
+/* Base bar style — animated height transition */
 .bar {
     width: 100%;
     position: absolute;
@@ -486,17 +625,20 @@ body {
     transition: height 1.2s cubic-bezier(0.1, 0.7, 0.1, 1);
 }
 
+/* Gray bar — Overall GPA (behind) */
 .bar.overall {
     background-color: #3f3f46;
     z-index: 1;
 }
 
+/* Orange gradient bar — Major GPA (in front) */
 .bar.major {
     background: linear-gradient(180deg, var(--accent-orange) 0%, rgba(249, 115, 22, 0.4) 100%);
     box-shadow: 0 0 15px rgba(249, 115, 22, 0.2);
     z-index: 2;
 }
 
+/* Semester label below each bar (e.g., "S1", "S2") */
 .bar-label {
     position: absolute;
     bottom: -25px;
@@ -506,6 +648,8 @@ body {
 }
 
 
+/* ---- PENDING EXAMS CARD ----
+   Right-side card listing upcoming exams */
 .pending-exams-card {
     display: flex;
     flex-direction: column;
@@ -515,6 +659,7 @@ body {
     margin-bottom: 1.5rem;
 }
 
+/* List container for exam items */
 .exams-list {
     display: flex;
     flex-direction: column;
@@ -523,6 +668,7 @@ body {
     flex: 1;
 }
 
+/* Individual exam row — course name + date, with colored left border and hover slide */
 .exam-item {
     display: flex;
     justify-content: space-between;
@@ -538,6 +684,7 @@ body {
     transform: translateX(4px);
 }
 
+/* Exam course name (left side) */
 .exam-course h4 {
     font-size: 0.9rem;
     font-weight: 600;
@@ -549,6 +696,7 @@ body {
     color: var(--text-secondary);
 }
 
+/* Exam date and time (right side) */
 .exam-datetime {
     text-align: right;
 }
@@ -564,6 +712,7 @@ body {
     color: var(--text-secondary);
 }
 
+/* "View Academic Calendar →" link at bottom of exams card */
 .view-all-link {
     display: flex;
     align-items: center;
@@ -581,16 +730,24 @@ body {
 }
 
 
+/* ============================================
+   BOTTOM SECTION — SMALL CARDS ROW
+   3-column grid: Grade History | (empty) |
+   Insight Card
+   ============================================ */
 .bottom-section-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 1.5rem;
 }
 
+/* Compact card variant (less padding) */
 .small-card {
     padding: 1.25rem;
 }
 
+/* ---- GRADE HISTORY CARD ----
+   Horizontal card with clock icon + "Detailed archive of past terms" */
 .history-card {
     grid-column: 1;
     flex-direction: row;
@@ -598,6 +755,7 @@ body {
     gap: 1rem;
 }
 
+/* Rounded icon box (gray bg, orange icon) */
 .small-card-icon {
     width: 40px;
     height: 40px;
@@ -610,6 +768,7 @@ body {
     font-size: 1.25rem;
 }
 
+/* Small card title (e.g., "Grade History") */
 .small-card-text h4 {
     font-size: 0.95rem;
     font-weight: 600;
@@ -621,6 +780,9 @@ body {
     color: var(--text-secondary);
 }
 
+/* ---- INSIGHT CARD ----
+   Gradient card with motivational message
+   (e.g., "Summa Cum Laude" prediction) */
 .insight-card {
     grid-column: 3;
     background: linear-gradient(135deg, #2a2a2d 0%, #202022 100%);
@@ -631,6 +793,7 @@ body {
     text-align: center;
 }
 
+/* Centered content wrapper inside insight card */
 .insight-wrapper {
     display: flex;
     flex-direction: column;
@@ -638,6 +801,7 @@ body {
     gap: 0.5rem;
 }
 
+/* "INSIGHT" label text */
 .insight-label {
     font-size: 0.7rem;
     font-weight: 700;
@@ -645,12 +809,14 @@ body {
     color: var(--text-secondary);
 }
 
+/* Insight message body text */
 .insight-text {
     font-size: 0.9rem;
     line-height: 1.4;
     color: var(--text-primary);
 }
 
+/* Orange bold text for emphasis (e.g., "Summa Cum Laude") */
 .highlight-orange {
     color: var(--accent-orange);
     font-weight: 600;

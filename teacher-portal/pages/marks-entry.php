@@ -29,7 +29,7 @@ if (strpos($course_code, '-') === false && strlen($course_code) > 3) {
 $course_q = mysqli_query($conn, "SELECT course_name, semester_id FROM courses WHERE course_code = '$course_code'");
 $course_info = mysqli_fetch_assoc($course_q);
 $course_name = $course_info ? $course_info['course_name'] : 'Advanced Algorithms';
-$semester_id = $course_info ? $course_info['semester_id'] : 1;
+$semester_id = $course_info ? $course_info['semester_id'] : getCurrentSemesterId($conn);
 
 $success_msg = '';
 $error_msg = '';
@@ -319,7 +319,7 @@ function get_time_ago($timestamp) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MarkMetrics | Teacher Portal</title>
-    <link rel="stylesheet" href="../style.css?v=1.8">
+    <link rel="stylesheet" href="../style.css?v=1.9">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* Hide HTML5 spin buttons */
@@ -382,13 +382,26 @@ function get_time_ago($timestamp) {
             <li class="dropdown active">
                 <a href="#">
                     <i class="fa-solid fa-rotate"></i> Academic Actions
+                    <?php if (isset($total_pending_actions) && $total_pending_actions > 0): ?>
+                        <span class="menu-badge"><?php echo $total_pending_actions; ?></span>
+                    <?php endif; ?>
                 </a>
                <ul class="submenu show">
                     <li>
-                        <a href="withdraw-request.php">Withdraw Requests</a>
+                        <a href="withdraw-request.php">
+                            Withdraw Requests
+                            <?php if (isset($pending_wr_count) && $pending_wr_count > 0): ?>
+                                <span class="menu-badge"><?php echo $pending_wr_count; ?></span>
+                            <?php endif; ?>
+                        </a>
                     </li>
                     <li>
-                        <a href="grade-management.php">Grade Management</a>
+                        <a href="grade-management.php">
+                            Grade Management
+                            <?php if (isset($pending_gcr_count) && $pending_gcr_count > 0): ?>
+                                <span class="menu-badge"><?php echo $pending_gcr_count; ?></span>
+                            <?php endif; ?>
+                        </a>
                     </li>
                 </ul>
             </li>
@@ -448,7 +461,7 @@ function get_time_ago($timestamp) {
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px;">
             <div class="page-header" style="margin-bottom: 0; max-width: 60%;">
                 <h1>Marks Entry</h1>
-                <p>Data-intensive academic evaluation for Course: <?php echo htmlspecialchars($course_name); ?> (<?php echo htmlspecialchars($course_code); ?>). Last synced 4 minutes ago.</p>
+                <p>Data-intensive academic evaluation for Course: <?php echo htmlspecialchars($course_name); ?> (<?php echo htmlspecialchars($course_code); ?>) [<?php echo SYSTEM_TERM_DISPLAY; ?>]. Last synced 4 minutes ago.</p>
             </div>
 
             <div class="marks-stats-row">

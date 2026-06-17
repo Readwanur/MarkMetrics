@@ -33,12 +33,13 @@ try {
     }
 
 
-    $current_semester = 'Spring 2024';
+    require_once __DIR__ . '/../../config.php';
+    $current_semester = SYSTEM_TERM_DISPLAY;
     $stmt = $pdo->prepare("
         SELECT COUNT(*) as enrolled 
         FROM enrollments e 
         JOIN semesters s ON e.semester_id = s.semester_id 
-        WHERE e.student_id = :id AND s.semester_name = :semester
+        WHERE e.student_id = :id AND s.display_name = :semester
     ");
     $stmt->execute(['id' => $student_id, 'semester' => $current_semester]);
     $coursesEnrolled = $stmt->fetch()['enrolled'];

@@ -953,3 +953,28 @@ tbody tr:hover {
     color: var(--primary-orange) !important;
     transform: translateX(-4px);
 }
+
+/* Sidebar menu badges */
+.menu-badge {
+    background-color: var(--color-red);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    border: 1.5px solid var(--bg-dark);
+    box-shadow: 0 0 8px rgba(255, 59, 59, 0.65);
+    padding: 0 4px;
+}
+
+.submenu a {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+}

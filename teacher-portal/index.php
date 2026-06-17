@@ -14,13 +14,15 @@ $teacher_initials = $teacher_data['initials'] ?? '';
 $avatar_db = $teacher_data['profile_picture_url'] ?? '';
 $avatar_path = empty($avatar_db) ? 'asset/avatar2.jpg' : '../' . $avatar_db;
 
-// Fetch teacher's courses
+// Fetch teacher's courses for the current semester
+$current_semester_id = getCurrentSemesterId($conn);
 $courses_query = "SELECT c.*, d.name AS dept_name, 
-                  (SELECT COUNT(*) FROM enrollments e WHERE e.course_code = c.course_code) AS enrollment_count 
+                  (SELECT COUNT(*) FROM enrollments e WHERE e.course_code = c.course_code AND e.semester_id = {$current_semester_id}) AS enrollment_count 
                   FROM courses c 
                   LEFT JOIN departments d ON c.department_id = d.department_id 
-                  WHERE c.teacher_id = '{$teacher_id}'";
+                  WHERE c.teacher_id = '{$teacher_id}' AND c.semester_id = {$current_semester_id}";
 $courses_result = mysqli_query($conn, $courses_query);
+
 
 ob_start();
 include('pages/noti-helper.php');
@@ -32,7 +34,7 @@ $noti_modal_html = ob_get_clean();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MarkMetrics | Teacher Portal</title>
-    <link rel="stylesheet" href="style.css?v=1.8">
+    <link rel="stylesheet" href="style.css?v=1.9">
     <!-- Include Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -53,13 +55,26 @@ $noti_modal_html = ob_get_clean();
             <li class="dropdown">
                 <a href="#">
                     <i class="fa-solid fa-rotate"></i> Academic Actions
+                    <?php if (isset($total_pending_actions) && $total_pending_actions > 0): ?>
+                        <span class="menu-badge"><?php echo $total_pending_actions; ?></span>
+                    <?php endif; ?>
                 </a>
                 <ul class="submenu">
                     <li>
-                         <a href="./pages/withdraw-request.php">Withdraw Requests</a>
+                         <a href="./pages/withdraw-request.php">
+                             Withdraw Requests
+                             <?php if (isset($pending_wr_count) && $pending_wr_count > 0): ?>
+                                 <span class="menu-badge"><?php echo $pending_wr_count; ?></span>
+                             <?php endif; ?>
+                         </a>
                      </li>
                      <li>
-                         <a href="./pages/grade-management.php">Grade Management</a>
+                         <a href="./pages/grade-management.php">
+                             Grade Management
+                             <?php if (isset($pending_gcr_count) && $pending_gcr_count > 0): ?>
+                                 <span class="menu-badge"><?php echo $pending_gcr_count; ?></span>
+                             <?php endif; ?>
+                         </a>
                      </li>
                 </ul>
             </li>
@@ -105,7 +120,7 @@ $noti_modal_html = ob_get_clean();
         <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
             <div>
                 <h1>My Courses</h1>
-                <p>Manage and monitor current semester curriculum.</p>
+                <p>Manage and monitor current semester curriculum (<?php echo SYSTEM_TERM_DISPLAY; ?>).</p>
             </div>
             <!-- Notification Bell -->
             <div style="position: relative;">
@@ -158,6 +173,8 @@ $noti_modal_html = ob_get_clean();
             }
             ?>
         </div>
+
+        <!-- PREVIOUS SEMESTERS COURSES -->
     </div>
 
     <script src="script.js"></script>
