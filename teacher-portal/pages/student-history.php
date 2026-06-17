@@ -152,7 +152,7 @@ function getGradeBadge($grade) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MarkMetrics | Teacher Portal</title>
-    <link rel="stylesheet" href="../style.css?v=1.8">
+    <link rel="stylesheet" href="../style.css?v=1.9">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .top-navbar {
@@ -271,13 +271,26 @@ function getGradeBadge($grade) {
             <li class="dropdown">
                 <a href="#">
                     <i class="fa-solid fa-rotate"></i> Academic Actions
+                    <?php if (isset($total_pending_actions) && $total_pending_actions > 0): ?>
+                        <span class="menu-badge"><?php echo $total_pending_actions; ?></span>
+                    <?php endif; ?>
                 </a>
                 <ul class="submenu">
                     <li>
-                        <a href="withdraw-request.php">Withdraw Requests</a>
+                        <a href="withdraw-request.php">
+                            Withdraw Requests
+                            <?php if (isset($pending_wr_count) && $pending_wr_count > 0): ?>
+                                <span class="menu-badge"><?php echo $pending_wr_count; ?></span>
+                            <?php endif; ?>
+                        </a>
                     </li>
                     <li>
-                        <a href="grade-management.php">Grade Management</a>
+                        <a href="grade-management.php">
+                            Grade Management
+                            <?php if (isset($pending_gcr_count) && $pending_gcr_count > 0): ?>
+                                <span class="menu-badge"><?php echo $pending_gcr_count; ?></span>
+                            <?php endif; ?>
+                        </a>
                     </li>
                 </ul>
             </li>

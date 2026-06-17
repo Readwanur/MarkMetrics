@@ -275,7 +275,7 @@ mysqli_close($conn);
             <a href="#">Security Policy</a>
             <a href="#">Terms</a>
         </div>
-        <p class="footer-copy">© 2026 MarkMetrics. Institutional Privacy Applied.</p>
+        <p class="footer-copy">© <?php echo SYSTEM_YEAR; ?> MarkMetrics. Institutional Privacy Applied.</p>
     </footer>
 
     <!-- Background Decorative Elements -->

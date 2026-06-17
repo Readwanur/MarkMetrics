@@ -56,6 +56,7 @@ CREATE TABLE students (
     student_id VARCHAR(50) PRIMARY KEY,
     program_id INT, 
     date_of_birth DATE,
+    mothers_name VARCHAR(255) DEFAULT 'Unknown',
     academic_year VARCHAR(50), 
     current_academic_year VARCHAR(50), 
     enrollment_term VARCHAR(50), -- Could be normalized further but left for readability
@@ -159,6 +160,29 @@ CREATE TABLE upcoming_tasks (
     title VARCHAR(255) NOT NULL, 
     task_type ENUM('Exam', 'Assignment', 'Presentation') NOT NULL,
     due_date DATETIME NOT NULL,
+    FOREIGN KEY (course_code) REFERENCES courses(course_code) ON DELETE CASCADE
+);
+
+-- 14. Student Finances Table (NEW)
+CREATE TABLE student_finances (
+    finance_id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id VARCHAR(50) NOT NULL,
+    total_billed DECIMAL(10,2) DEFAULT 0,
+    paid_amount DECIMAL(10,2) DEFAULT 0,
+    waived_amount DECIMAL(10,2) DEFAULT 0,
+    balance DECIMAL(10,2) GENERATED ALWAYS AS (total_billed - paid_amount - waived_amount) STORED,
+    FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE,
+    UNIQUE KEY unique_student_finance (student_id)
+);
+
+-- 15. Class Schedules Table (NEW)
+CREATE TABLE class_schedules (
+    schedule_id INT AUTO_INCREMENT PRIMARY KEY,
+    course_code VARCHAR(20) NOT NULL,
+    day_of_week ENUM('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') NOT NULL,
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
+    room_number VARCHAR(20),
     FOREIGN KEY (course_code) REFERENCES courses(course_code) ON DELETE CASCADE
 );
 

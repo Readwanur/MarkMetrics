@@ -17,9 +17,31 @@ $error_msg = '';
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_profile'])) {
     $name = mysqli_real_escape_string($conn, trim($_POST['name']));
     $email = mysqli_real_escape_string($conn, trim($_POST['email']));
-    $initials = mysqli_real_escape_string($conn, trim($_POST['initials']));
-    $position = mysqli_real_escape_string($conn, trim($_POST['position']));
     $edu = mysqli_real_escape_string($conn, trim($_POST['education_background']));
+
+    // Generate initials automatically from name (4-6 character logic)
+    $clean_name = preg_replace('/^(prof\.|dr\.|mr\.|mrs\.|ms\.)\s+/i', '', $name);
+    $clean_name = preg_replace('/[^a-zA-Z\s]/', '', $clean_name);
+    $words = array_values(array_filter(explode(' ', $clean_name)));
+    $num_words = count($words);
+    $computed_initials = '';
+    
+    if ($num_words === 1) {
+        $computed_initials = ucfirst(strtolower(substr($words[0], 0, 4)));
+    } elseif ($num_words === 2) {
+        $computed_initials = ucfirst(strtolower(substr($words[0], 0, 2))) . ucfirst(strtolower(substr($words[1], 0, 2)));
+    } elseif ($num_words === 3) {
+        $computed_initials = ucfirst(strtolower(substr($words[0], 0, 2))) . ucfirst(strtolower(substr($words[1], 0, 2))) . ucfirst(strtolower(substr($words[2], 0, 2)));
+    } elseif ($num_words === 4) {
+        $computed_initials = ucfirst(strtolower(substr($words[0], 0, 1))) . ucfirst(strtolower(substr($words[1], 0, 1))) . ucfirst(strtolower(substr($words[2], 0, 1))) . ucfirst(strtolower(substr($words[3], 0, 1)));
+    } elseif ($num_words === 5) {
+        $computed_initials = ucfirst(strtolower(substr($words[0], 0, 1))) . ucfirst(strtolower(substr($words[1], 0, 1))) . ucfirst(strtolower(substr($words[2], 0, 1))) . ucfirst(strtolower(substr($words[3], 0, 1))) . ucfirst(strtolower(substr($words[4], 0, 1)));
+    } elseif ($num_words >= 6) {
+        for ($i = 0; $i < min($num_words, 6); $i++) {
+            $computed_initials .= ucfirst(strtolower(substr($words[$i], 0, 1)));
+        }
+    }
+    $initials = mysqli_real_escape_string($conn, $computed_initials);
 
     $update_success = true;
 
@@ -38,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_profile'])) {
         $user_up = mysqli_query($conn, $user_sql);
 
         // Update teachers table
-        $teacher_sql = "UPDATE teachers SET initials = '$initials', position = '$position', education_background = '$edu' WHERE teacher_id = '$teacher_id'";
+        $teacher_sql = "UPDATE teachers SET initials = '$initials', education_background = '$edu' WHERE teacher_id = '$teacher_id'";
         $teacher_up = mysqli_query($conn, $teacher_sql);
 
         if ($user_up && $teacher_up) {
@@ -117,7 +139,7 @@ $avatar_path = empty($avatar_db) ? '../asset/avatar2.jpg' : '../../' . $avatar_d
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MarkMetrics | Teacher Profile</title>
-    <link rel="stylesheet" href="../style.css?v=1.8">
+    <link rel="stylesheet" href="../style.css?v=1.9">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .profile-container {
@@ -228,13 +250,26 @@ $avatar_path = empty($avatar_db) ? '../asset/avatar2.jpg' : '../../' . $avatar_d
             <li class="dropdown">
                 <a href="#">
                     <i class="fa-solid fa-rotate"></i> Academic Actions
+                    <?php if (isset($total_pending_actions) && $total_pending_actions > 0): ?>
+                        <span class="menu-badge"><?php echo $total_pending_actions; ?></span>
+                    <?php endif; ?>
                 </a>
                <ul class="submenu">
                     <li>
-                        <a href="withdraw-request.php">Withdraw Requests</a>
+                        <a href="withdraw-request.php">
+                            Withdraw Requests
+                            <?php if (isset($pending_wr_count) && $pending_wr_count > 0): ?>
+                                <span class="menu-badge"><?php echo $pending_wr_count; ?></span>
+                            <?php endif; ?>
+                        </a>
                     </li>
                     <li>
-                        <a href="grade-management.php">Grade Management</a>
+                        <a href="grade-management.php">
+                            Grade Management
+                            <?php if (isset($pending_gcr_count) && $pending_gcr_count > 0): ?>
+                                <span class="menu-badge"><?php echo $pending_gcr_count; ?></span>
+                            <?php endif; ?>
+                        </a>
                     </li>
                 </ul>
             </li>
@@ -327,10 +362,6 @@ $avatar_path = empty($avatar_db) ? '../asset/avatar2.jpg' : '../../' . $avatar_d
                     
                     <div style="border-top: 1px solid var(--border-color); padding-top: 20px; text-align: left; display: flex; flex-direction: column; gap: 12px; font-size: 13px;">
                         <div>
-                            <span style="color: var(--text-secondary); font-weight: 600;">Teacher ID:</span>
-                            <span style="float: right; color: #fff;"><?php echo htmlspecialchars($teacher_id); ?></span>
-                        </div>
-                        <div>
                             <span style="color: var(--text-secondary); font-weight: 600;">Initials:</span>
                             <span style="float: right; color: #fff; font-weight: bold;"><?php echo htmlspecialchars($teacher_initials ?: '--'); ?></span>
                         </div>
@@ -352,7 +383,7 @@ $avatar_path = empty($avatar_db) ? '../asset/avatar2.jpg' : '../../' . $avatar_d
                         </div>
                         <div class="form-group">
                             <label for="initialsInput">Teacher Initial</label>
-                            <input type="text" name="initials" id="initialsInput" value="<?php echo htmlspecialchars($teacher_initials); ?>" maxlength="10" placeholder="e.g. MB">
+                            <input type="text" id="initialsInput" value="<?php echo htmlspecialchars($teacher_initials); ?>" readonly style="background: rgba(255,255,255,0.02); color: #888; border-color: rgba(255,255,255,0.05); cursor: not-allowed;" title="Initials are generated automatically from your name.">
                         </div>
                         <div class="form-group">
                             <label for="emailInput">Email Address</label>
@@ -360,7 +391,7 @@ $avatar_path = empty($avatar_db) ? '../asset/avatar2.jpg' : '../../' . $avatar_d
                         </div>
                         <div class="form-group">
                             <label for="positionInput">Position / Academic Rank</label>
-                            <input type="text" name="position" id="positionInput" value="<?php echo htmlspecialchars($teacher_position); ?>" placeholder="e.g. Professor">
+                            <input type="text" id="positionInput" value="<?php echo htmlspecialchars($teacher_position); ?>" readonly style="background: rgba(255,255,255,0.02); color: #888; border-color: rgba(255,255,255,0.05); cursor: not-allowed;" title="Academic position is managed by administration.">
                         </div>
                         <div class="form-group full-width">
                             <label for="eduInput">Educational Background</label>

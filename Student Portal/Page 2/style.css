@@ -1,3 +1,9 @@
+/* ============================================
+   GLOBAL DESIGN TOKENS / COLOR PALETTE
+   Defines all CSS custom properties used across
+   the Grade History dashboard for consistent
+   dark theming.
+   ============================================ */
 :root {
     --bg-main: #121212;
     --bg-sidebar: #1A1A1A;
@@ -14,12 +20,22 @@
     --font-main: 'Inter', sans-serif;
 }
 
+/* ============================================
+   GLOBAL RESET
+   Strips browser defaults — no margin/padding,
+   and sets border-box sizing.
+   ============================================ */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
+/* ============================================
+   BODY
+   Dark background, white text, full viewport
+   height, and no horizontal scroll.
+   ============================================ */
 body {
     background-color: var(--bg-main);
     color: var(--text-main);
@@ -28,12 +44,22 @@ body {
     overflow-x: hidden;
 }
 
+/* ============================================
+   APP LAYOUT CONTAINER
+   Flex wrapper that holds the sidebar and
+   main content side by side.
+   ============================================ */
 .app-container {
     display: flex;
     min-height: 100vh;
 }
 
-/* Sidebar */
+/* ============================================
+   SIDEBAR NAVIGATION
+   Fixed 260px left panel containing the logo,
+   nav links (Overview, Grade History, Grade
+   Management), and footer (Support, Log Out).
+   ============================================ */
 .sidebar {
     width: 260px;
     background-color: var(--bg-sidebar);
@@ -48,24 +74,28 @@ body {
     z-index: 100;
 }
 
+/* Sidebar Header — holds the MarkMetrics logo */
 .sidebar-header {
     display: flex;
     align-items: center;
     padding: 0 24px 32px;
 }
 
+/* MarkMetrics logo image */
 .main-logo {
     height: 65px;
     width: auto;
     object-fit: contain;
 }
 
+/* Sidebar nav link container (vertical) */
 .sidebar-nav {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
 }
 
+/* Individual nav link — icon + label row */
 .nav-item {
     position: relative;
     display: flex;
@@ -79,16 +109,19 @@ body {
     transition: all 0.2s ease;
 }
 
+/* Nav link hover state */
 .nav-item:hover {
     color: var(--text-main);
     background-color: rgba(255, 255, 255, 0.05);
 }
 
+/* Nav link active/selected state (orange text) */
 .nav-item.active {
     color: var(--accent-orange);
     background-color: rgba(243, 112, 33, 0.08);
 }
 
+/* Glowing orange bar on the left edge of the active nav item */
 .active-indicator {
     position: absolute;
     left: 0;
@@ -101,10 +134,12 @@ body {
     box-shadow: 2px 0 10px rgba(243, 112, 33, 0.5);
 }
 
+/* Nav link text label */
 .nav-text {
     line-height: 1.3;
 }
 
+/* Sidebar footer — Support & Log Out links, pinned to bottom */
 .sidebar-footer {
     padding: 24px 0;
     margin-top: auto;
@@ -114,7 +149,33 @@ body {
     gap: 8px;
 }
 
-/* Main Content */
+/* Logout button - orange pill matching management page */
+.sidebar-footer .nav-item.logout-btn {
+    margin: 4px 16px 0;
+    background-color: var(--accent-orange);
+    color: #fff !important;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-weight: 600;
+    font-size: 13px;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+}
+
+.sidebar-footer .nav-item.logout-btn:hover {
+    background-color: var(--accent-orange-hover) !important;
+    color: #fff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(243, 112, 33, 0.35);
+}
+
+/* ============================================
+   MAIN CONTENT AREA
+   The right-side panel next to the sidebar.
+   Offset by 260px (sidebar width), scrollable.
+   ============================================ */
 .main-content {
     margin-left: 260px;
     flex-grow: 1;
@@ -124,6 +185,11 @@ body {
     overflow-y: auto;
 }
 
+/* ============================================
+   TOP HEADER BAR
+   Right-aligned bar with notification bell,
+   settings gear, and user profile avatar.
+   ============================================ */
 .top-header {
     height: 70px;
     display: flex;
@@ -132,23 +198,29 @@ body {
     padding: 0 40px;
 }
 
+/* Header right-side actions (bell, gear, avatar) */
 .header-actions {
     display: flex;
     align-items: center;
     gap: 16px;
 }
 
+/* Unified Notification Button Styling */
 .icon-btn {
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    cursor: pointer;
-    position: relative;
-    padding: 8px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: color 0.2s;
+    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.03);
+    cursor: pointer;
+    position: relative;
+    color: var(--text-muted);
+    transition: all 0.2s ease;
+    padding: 0;
+    outline: none;
 }
 
 .icon-btn i {
@@ -156,19 +228,26 @@ body {
 }
 
 .icon-btn:hover {
+    border-color: var(--accent-orange);
     color: var(--text-main);
+    transform: scale(1.05);
+    background: rgba(243, 112, 33, 0.05);
 }
 
+/* Unified Notification Badge */
 .notification-dot {
     position: absolute;
-    top: 6px;
-    right: 6px;
-    width: 6px;
-    height: 6px;
+    top: -2px;
+    right: -2px;
+    width: 8px;
+    height: 8px;
     background-color: var(--accent-orange);
     border-radius: 50%;
+    border: 2px solid var(--bg-main);
+    box-shadow: 0 0 8px rgba(243, 112, 33, 0.6);
 }
 
+/* User profile avatar (rounded image with hover effect) */
 .user-avatar {
     width: 40px;
     height: 40px;
@@ -190,7 +269,11 @@ body {
     transform: scale(1.05);
 }
 
-/* Dashboard Layout */
+/* ============================================
+   DASHBOARD 2-COLUMN LAYOUT
+   Left column (1fr): Profile + Academic History
+   Right column (300px): Progress & Insight cards
+   ============================================ */
 .dashboard-content {
     display: grid;
     grid-template-columns: 1fr 300px;
@@ -199,7 +282,11 @@ body {
     max-width: 1400px;
 }
 
-/* Primary Column */
+/* ============================================
+   PROFILE SECTION (LEFT COLUMN — TOP)
+   Student name, major, CGPA card, and
+   download transcript button.
+   ============================================ */
 .profile-section {
     display: flex;
     justify-content: space-between;
@@ -207,6 +294,7 @@ body {
     margin-bottom: 32px;
 }
 
+/* "ACADEMIC PROFILE" orange label above student name */
 .section-label {
     font-size: 10px;
     font-weight: 700;
@@ -217,6 +305,7 @@ body {
     display: block;
 }
 
+/* Student name — large bold heading (e.g., "John Doe") */
 #profile-name {
     font-size: 48px;
     font-weight: 800;
@@ -225,11 +314,15 @@ body {
     line-height: 1.1;
 }
 
+/* Major/program subtitle text */
 .subtitle {
     color: var(--text-muted);
     font-size: 16px;
 }
 
+/* ---- CGPA DISPLAY CARD ----
+   Dark card showing the large CGPA value
+   with trend indicator (+0.04 vs Last trimester) */
 .cgpa-card {
     background-color: var(--bg-card);
     padding: 24px 32px;
@@ -240,6 +333,7 @@ body {
     align-items: flex-end;
 }
 
+/* "CGPA" label text above the value */
 .cgpa-label {
     font-size: 10px;
     font-weight: 700;
@@ -247,6 +341,7 @@ body {
     color: var(--text-muted);
 }
 
+/* Large CGPA number (e.g., "3.85") */
 .cgpa-value {
     font-size: 64px;
     font-weight: 800;
@@ -254,6 +349,7 @@ body {
     margin: 4px 0;
 }
 
+/* Blue trend indicator (e.g., "+0.04 vs Last trimester") */
 .cgpa-trend {
     display: flex;
     align-items: center;
@@ -263,6 +359,10 @@ body {
     font-weight: 600;
 }
 
+/* ============================================
+   STATS ROW (3-COLUMN)
+   Student Status | Enrollment | Major GPA
+   ============================================ */
 .stats-row {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -270,6 +370,7 @@ body {
     margin-bottom: 40px;
 }
 
+/* Individual stat box (dark card with border) */
 .stat-box {
     background-color: var(--bg-card);
     padding: 20px;
@@ -277,6 +378,7 @@ body {
     border: 1px solid var(--border-color);
 }
 
+/* Small uppercase label (e.g., "STUDENT STATUS") */
 .stat-label {
     font-size: 10px;
     font-weight: 700;
@@ -286,16 +388,22 @@ body {
     display: block;
 }
 
+/* Stat value text (e.g., "Active / 3rd Year") */
 .stat-value {
     font-size: 15px;
     font-weight: 600;
 }
 
+/* Orange highlighted stat value (Major GPA) */
 .stat-value.highlight {
     color: var(--accent-orange);
     font-size: 18px;
 }
 
+/* ============================================
+   ACADEMIC HISTORY SECTION HEADER
+   "Academic History" title with optional button
+   ============================================ */
 .section-header {
     display: flex;
     justify-content: space-between;
@@ -309,6 +417,7 @@ body {
     letter-spacing: -0.5px;
 }
 
+/* Orange primary button (used in section header) */
 .btn-primary {
     background-color: rgba(255, 138, 0, 0.85);
     color: #000;
@@ -328,7 +437,12 @@ body {
     background-color: var(--accent-orange);
 }
 
-/* Enrollment Cards */
+/* ============================================
+   ENROLLMENT / TERM CARDS
+   Collapsible cards for each semester showing
+   term name, dates, GPA, and a course table
+   that expands on click.
+   ============================================ */
 .term-card {
     background-color: var(--bg-card);
     border-radius: 16px;
@@ -338,11 +452,13 @@ body {
     transition: all 0.3s ease;
 }
 
+/* Active/running term card — orange left border accent */
 .term-card.running {
     border-color: var(--accent-orange);
     border-left: 4px solid var(--accent-orange);
 }
 
+/* Term card header — clickable row to expand/collapse */
 .term-header {
     display: flex;
     justify-content: space-between;
@@ -351,12 +467,14 @@ body {
     cursor: pointer;
 }
 
+/* Left side of term header — icon + title */
 .term-info {
     display: flex;
     align-items: center;
     gap: 16px;
 }
 
+/* Rounded icon box for each term */
 .term-icon {
     width: 48px;
     height: 48px;
@@ -367,6 +485,7 @@ body {
     align-items: center;
 }
 
+/* Term name heading (e.g., "Summer 2025") */
 .term-title h3 {
     font-size: 20px;
     font-weight: 600;
@@ -375,6 +494,7 @@ body {
     gap: 12px;
 }
 
+/* "RUNNING" badge on the active term */
 .badge-running {
     font-size: 10px;
     background-color: rgba(255, 138, 0, 0.15);
@@ -384,18 +504,21 @@ body {
     font-weight: 700;
 }
 
+/* Term date range text (e.g., "Jan - Apr 2025") */
 .term-dates {
     font-size: 13px;
     color: var(--text-muted);
     margin-top: 4px;
 }
 
+/* Right side of term header — GPA + expand icon */
 .term-stats {
     display: flex;
     align-items: center;
     gap: 24px;
 }
 
+/* Term GPA display (label + value) */
 .term-gpa {
     text-align: right;
 }
@@ -412,6 +535,7 @@ body {
     font-weight: 700;
 }
 
+/* Chevron icon that rotates on expand */
 .expand-icon {
     color: var(--text-muted);
     transition: transform 0.3s;
@@ -421,6 +545,9 @@ body {
     transform: rotate(180deg);
 }
 
+/* ---- TERM BODY (EXPANDED) ----
+   Hidden by default, shown when card is expanded.
+   Contains the course table. */
 .term-body {
     display: none;
     padding: 0 24px 24px;
@@ -430,6 +557,9 @@ body {
     display: block;
 }
 
+/* ---- COURSE TABLE ----
+   Table showing Code | Title | Credits | Grade | Remarks
+   for each course in the term. */
 .course-table {
     width: 100%;
     border-collapse: collapse;
@@ -455,17 +585,20 @@ body {
     border-bottom: none;
 }
 
+/* Course code column — orange text (e.g., "CSE 4510") */
 .course-code {
     color: var(--accent-orange);
     font-weight: 600;
     width: 15%;
 }
 
+/* Course title column — white text */
 .course-title {
     color: var(--text-main);
     width: 40%;
 }
 
+/* Grade badge (e.g., "A+") — pill with subtle background */
 .course-grade {
     display: inline-block;
     padding: 4px 8px;
@@ -475,13 +608,19 @@ body {
     color: var(--text-main);
 }
 
+/* Remarks column — italic muted text, right-aligned */
 .course-remarks {
     font-style: italic;
     color: var(--text-dark);
     text-align: right;
 }
 
-/* Secondary Column */
+/* ============================================
+   SECONDARY COLUMN (RIGHT SIDEBAR)
+   Academic Progress card, GPA Velocity chart,
+   Credits & Dean's List stats, Completion bars,
+   and Insight card.
+   ============================================ */
 .side-card {
     background-color: var(--bg-card);
     border-radius: 16px;
@@ -490,6 +629,7 @@ body {
     margin-bottom: 20px;
 }
 
+/* Card header — icon + title row */
 .card-header {
     display: flex;
     align-items: flex-start;
@@ -503,6 +643,7 @@ body {
     line-height: 1.2;
 }
 
+/* Small uppercase label (e.g., "GPA VELOCITY") */
 .mini-label {
     font-size: 10px;
     font-weight: 700;
@@ -512,6 +653,8 @@ body {
     margin-bottom: 8px;
 }
 
+/* ---- GPA VELOCITY SECTION ----
+   "Consistent Growth" heading + percentage + bar chart */
 .gpa-velocity h4 {
     color: var(--accent-blue);
     font-size: 20px;
@@ -527,6 +670,7 @@ body {
     margin-bottom: 8px;
 }
 
+/* GPA Velocity mini bar chart — semester-by-semester */
 .bar-chart {
     display: flex;
     align-items: flex-end;
@@ -537,6 +681,7 @@ body {
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
+/* Individual bar in the velocity chart */
 .bar {
     flex: 1;
     background-color: rgba(77, 171, 247, 0.2);
@@ -545,6 +690,7 @@ body {
     transition: height 0.5s ease;
 }
 
+/* Highlighted bar (current/latest semester) */
 .bar.highlight {
     background-color: var(--accent-blue);
 }
@@ -563,6 +709,8 @@ body {
     font-weight: 700;
 }
 
+/* ---- MINI STATS GRID (2-COLUMN) ----
+   Total Credits + Dean's List count */
 .mini-stats-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -570,6 +718,7 @@ body {
     margin-bottom: 24px;
 }
 
+/* Individual mini stat box (dark rounded card) */
 .mini-stat {
     background-color: rgba(0, 0, 0, 0.2);
     padding: 16px;
@@ -587,12 +736,14 @@ body {
     font-size: 24px;
 }
 
+/* Credits progress bar — track (gray background) */
 .progress-line {
     height: 4px;
     background-color: rgba(255, 255, 255, 0.1);
     border-radius: 2px;
 }
 
+/* Credits progress bar — fill */
 .progress-line .fill {
     height: 100%;
     border-radius: 2px;
@@ -602,11 +753,13 @@ body {
     background-color: var(--accent-orange);
 }
 
+/* Dean's List dots indicator — row of circles */
 .dots-line {
     display: flex;
     gap: 4px;
 }
 
+/* Individual dot (unfilled = gray) */
 .dot {
     width: 6px;
     height: 6px;
@@ -614,10 +767,14 @@ body {
     background-color: rgba(255, 255, 255, 0.1);
 }
 
+/* Filled dot (orange = earned Dean's List) */
 .dot.filled {
     background-color: var(--accent-orange);
 }
 
+/* ---- COMPLETION BARS ----
+   Rows showing Major Completion, General Electives,
+   and Residency Requirement percentages. */
 .comp-row {
     display: flex;
     justify-content: space-between;
@@ -644,11 +801,15 @@ body {
     color: var(--accent-blue);
 }
 
+/* ---- MARKMETRICS INSIGHT CARD ----
+   Motivational card with star background
+   (e.g., "Magna Cum Laude" prediction) */
 .insight-card {
     position: relative;
     overflow: hidden;
 }
 
+/* Decorative star SVG in background */
 .bg-star {
     position: absolute;
     top: -20px;
@@ -671,6 +832,7 @@ body {
     color: var(--text-main);
 }
 
+/* "VIEW GRADUATION PATHWAY →" link */
 .pathway-link {
     display: flex;
     align-items: center;
@@ -686,7 +848,12 @@ body {
     color: var(--accent-orange);
 }
 
-/* Download Button & Modal Styles */
+/* ============================================
+   DOWNLOAD TRANSCRIPT BUTTON & MODAL
+   Button to trigger transcript download,
+   and the modal for selecting semesters to
+   include in the PDF.
+   ============================================ */
 .btn-download {
     display: inline-flex;
     align-items: center;
@@ -707,6 +874,7 @@ body {
     background-color: var(--border-color);
 }
 
+/* Primary button variant (modal "Generate PDF" button) */
 .btn-primary {
     background-color: var(--accent-orange);
     color: #000;
@@ -722,6 +890,7 @@ body {
     background-color: #e67a00;
 }
 
+/* Text-only button (modal "Cancel" button) */
 .btn-text {
     background: transparent;
     color: var(--text-muted);
@@ -736,6 +905,9 @@ body {
     color: var(--text-main);
 }
 
+/* ---- MODAL OVERLAY ----
+   Full-screen dark backdrop with blur,
+   hidden by default, shown when .active */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -758,6 +930,7 @@ body {
     pointer-events: auto;
 }
 
+/* Modal content box — dark card, centered, slides in */
 .modal-content {
     background-color: var(--bg-card);
     border: 1px solid var(--border-color);
@@ -773,6 +946,7 @@ body {
     transform: translateY(0);
 }
 
+/* Modal header — "Download Transcript" title + close button */
 .modal-header {
     display: flex;
     justify-content: space-between;
@@ -786,6 +960,7 @@ body {
     font-weight: 600;
 }
 
+/* Modal close (X) button */
 .close-btn {
     color: var(--text-muted);
     background: transparent;
@@ -798,16 +973,21 @@ body {
     color: var(--text-main);
 }
 
+/* Modal body — contains instruction text + semester checkboxes */
 .modal-body {
     padding: 24px;
 }
 
+/* Modal instruction text */
 .modal-instruction {
     color: var(--text-muted);
     margin-bottom: 16px;
     font-size: 14px;
 }
 
+/* ---- SEMESTER CHECKBOX LIST ----
+   Scrollable list of semesters to select
+   for transcript download. */
 .checkbox-list {
     display: flex;
     flex-direction: column;
@@ -817,6 +997,7 @@ body {
     padding-right: 8px;
 }
 
+/* Custom scrollbar for checkbox list */
 .checkbox-list::-webkit-scrollbar {
     width: 6px;
 }
@@ -826,6 +1007,7 @@ body {
     border-radius: 3px;
 }
 
+/* Individual semester checkbox row */
 .semester-checkbox-item {
     display: flex;
     align-items: center;
@@ -842,6 +1024,7 @@ body {
     border-color: var(--accent-orange);
 }
 
+/* Checkbox input — orange accent color */
 .semester-checkbox-item input[type="checkbox"] {
     accent-color: var(--accent-orange);
     width: 18px;
@@ -849,6 +1032,7 @@ body {
     cursor: pointer;
 }
 
+/* Checkbox label — semester name + status tag */
 .semester-checkbox-item label {
     flex-grow: 1;
     cursor: pointer;
@@ -857,6 +1041,7 @@ body {
     justify-content: space-between;
 }
 
+/* Status tag inside checkbox label (e.g., "Running") */
 .semester-checkbox-item label .status-tag {
     font-size: 12px;
     padding: 2px 6px;
@@ -865,6 +1050,7 @@ body {
     color: var(--text-muted);
 }
 
+/* Modal footer — Cancel + Generate PDF buttons */
 .modal-footer {
     padding: 16px 24px;
     border-top: 1px solid var(--border-color);

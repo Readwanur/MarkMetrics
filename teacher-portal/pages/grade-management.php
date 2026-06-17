@@ -6,6 +6,15 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'teacher') {
 }
 include('../../LoginPage/connect2db.php');
 $teacher_id = $_SESSION['id'];
+
+// Mark pending grade correction requests as read
+mysqli_query($conn, "
+    UPDATE grade_correction_requests gcr 
+    JOIN courses c ON gcr.course_code = c.course_code 
+    SET gcr.is_read = 1 
+    WHERE c.teacher_id = '$teacher_id' AND gcr.status = 'Pending'
+");
+
 ob_start();
 include('noti-helper.php');
 $noti_modal_html = ob_get_clean();
@@ -244,7 +253,7 @@ if ($limit === 'all') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MarkMetrics | Teacher Portal</title>
-    <link rel="stylesheet" href="../style.css?v=1.8">
+    <link rel="stylesheet" href="../style.css?v=1.9">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -264,13 +273,26 @@ if ($limit === 'all') {
             <li class="dropdown active">
                 <a href="#" class="active">
                     <i class="fa-solid fa-rotate"></i> Academic Actions
+                    <?php if (isset($total_pending_actions) && $total_pending_actions > 0): ?>
+                        <span class="menu-badge"><?php echo $total_pending_actions; ?></span>
+                    <?php endif; ?>
                 </a>
                 <ul class="submenu show">
                     <li>
-                        <a href="withdraw-request.php">Withdraw Requests</a>
+                        <a href="withdraw-request.php">
+                            Withdraw Requests
+                            <?php if (isset($pending_wr_count) && $pending_wr_count > 0): ?>
+                                <span class="menu-badge"><?php echo $pending_wr_count; ?></span>
+                            <?php endif; ?>
+                        </a>
                     </li>
                     <li class="active">
-                        <a href="grade-management.php">Grade Management</a>
+                        <a href="grade-management.php">
+                            Grade Management
+                            <?php if (isset($pending_gcr_count) && $pending_gcr_count > 0): ?>
+                                <span class="menu-badge"><?php echo $pending_gcr_count; ?></span>
+                            <?php endif; ?>
+                        </a>
                     </li>
                 </ul>
             </li>
