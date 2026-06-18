@@ -30,6 +30,11 @@ if (!$conn) {
     die("Database connection failed: " . mysqli_connect_error());
 }
 
+// Ensure initials column exists in teachers table (may be missing in older schema)
+@mysqli_query($conn, "ALTER TABLE teachers ADD COLUMN IF NOT EXISTS initials VARCHAR(20) NULL");
+// Back-fill initials with teacher_id where not set
+@mysqli_query($conn, "UPDATE teachers SET initials = teacher_id WHERE initials IS NULL OR initials = ''");
+
 // --- Handle Suspend/Unsuspend Status Update ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
     header('Content-Type: application/json');
@@ -68,7 +73,7 @@ if (isset($_GET['search_users'])) {
     
     $where_clauses = [];
     if (!empty($query)) {
-        $where_clauses[] = "(u.name LIKE '%$query%' OR u.id LIKE '%$query%' OR t.initials LIKE '%$query%')";
+        $where_clauses[] = "(u.name LIKE '%$query%' OR u.id LIKE '%$query%' OR IFNULL(t.initials, t.teacher_id) LIKE '%$query%')";
     }
     
     if ($role_filter === 'student') {
@@ -81,7 +86,7 @@ if (isset($_GET['search_users'])) {
     
     $where_str = implode(' AND ', $where_clauses);
     
-    $sql = "SELECT u.id, u.name, u.role, u.status, u.email, d.name as dept_name, t.position, t.initials, s.academic_year
+    $sql = "SELECT u.id, u.name, u.role, u.status, u.email, d.name as dept_name, t.position, IFNULL(t.initials, t.teacher_id) as initials, s.academic_year
             FROM users u
             LEFT JOIN departments d ON u.department_id = d.department_id
             LEFT JOIN teachers t ON u.id = t.teacher_id
@@ -355,7 +360,7 @@ function getAvatarColor($role)
 // Fetch All Users (students + teachers) for Directory
 $all_users_query = "
     SELECT u.id, u.name, u.role, u.status, u.email,
-           d.name as dept_name, t.position, t.initials, s.academic_year
+           d.name as dept_name, t.position, IFNULL(t.initials, t.teacher_id) as initials, s.academic_year
     FROM users u
     LEFT JOIN departments d ON u.department_id = d.department_id
     LEFT JOIN teachers t ON u.id = t.teacher_id
@@ -714,6 +719,102 @@ mysqli_close($conn);
                         </div>
                     </div>
                 </div>
+
+                <!-- ===== User Directory Section ===== -->
+                <div class="user-directory-section">
+                    <div class="user-directory-header">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div class="catalog-title-bar-dir"></div>
+                            <div>
+                                <h2 style="font-size:1.2rem; font-weight:700; color:var(--text-primary);">User Directory</h2>
+                                <p style="font-size:13px; color:var(--text-muted); margin-top:3px;">
+                                    All registered students &amp; teachers — <span id="dirCount"><?php echo count($all_users); ?></span> members
+                                </p>
+                            </div>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <span style="font-size:12px; color:var(--text-muted); background:rgba(255,255,255,0.04); border:1px solid var(--border-color); padding:6px 14px; border-radius:20px; font-weight:500;">
+                                <span id="dirFilterLabel">Showing All</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="user-dir-table-wrap">
+                        <table class="user-dir-table" id="userDirTable">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>ID / Initial</th>
+                                    <th>Role</th>
+                                    <th>Department</th>
+                                    <th>Email</th>
+                                    <th>Status</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="userDirBody">
+                                <?php foreach ($all_users as $u):
+                                    $initial = strtoupper(substr($u['name'], 0, 1));
+                                    $roleColor = $u['role'] === 'teacher' ? '#60a5fa' : '#22c55e';
+                                    $statusColor = $u['status'] === 'Active' ? '#22c55e' : ($u['status'] === 'Inactive' ? '#ef4444' : '#f37021');
+                                    $statusBg = $u['status'] === 'Active' ? 'rgba(34,197,94,0.12)' : ($u['status'] === 'Inactive' ? 'rgba(239,68,68,0.12)' : 'rgba(243,112,33,0.12)');
+                                    $displayId = $u['role'] === 'teacher' ? ($u['initials'] ?? $u['id']) : $u['id'];
+                                    $userJson = htmlspecialchars(json_encode($u), ENT_QUOTES, 'UTF-8');
+                                ?>
+                                <tr class="user-dir-row" data-user="<?php echo $userJson; ?>" data-name="<?php echo strtolower($u['name']); ?>" data-id="<?php echo strtolower($u['id']); ?>" data-initials="<?php echo strtolower($u['initials'] ?? ''); ?>" data-role="<?php echo $u['role']; ?>">
+                                    <td>
+                                        <div style="display:flex; align-items:center; gap:12px;">
+                                            <div class="dir-avatar" style="background:<?php echo $u['role'] === 'teacher' ? '#1e40af' : '#14532d'; ?>; color:<?php echo $roleColor; ?>;">
+                                                <?php echo $initial; ?>
+                                            </div>
+                                            <span style="font-weight:600; color:var(--text-primary); font-size:14px;"><?php echo htmlspecialchars($u['name']); ?></span>
+                                        </div>
+                                    </td>
+                                    <td style="font-family:monospace; color:var(--text-secondary); font-size:13px;"><?php echo htmlspecialchars($displayId); ?></td>
+                                    <td>
+                                        <span style="display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em;
+                                            color:<?php echo $roleColor; ?>;
+                                            background:<?php echo $u['role'] === 'teacher' ? 'rgba(96,165,250,0.12)' : 'rgba(34,197,94,0.12)'; ?>;
+                                            border:1px solid <?php echo $u['role'] === 'teacher' ? 'rgba(96,165,250,0.25)' : 'rgba(34,197,94,0.25)'; ?>;">
+                                            <?php echo ucfirst($u['role']); ?>
+                                        </span>
+                                    </td>
+                                    <td style="color:var(--text-secondary); font-size:13px;"><?php echo htmlspecialchars($u['dept_name'] ?? '—'); ?></td>
+                                    <td style="color:var(--text-muted); font-size:13px;"><?php echo htmlspecialchars($u['email']); ?></td>
+                                    <td>
+                                        <span style="display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700;
+                                            color:<?php echo $statusColor; ?>;
+                                            background:<?php echo $statusBg; ?>;">
+                                            <?php echo htmlspecialchars($u['status']); ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="view-user-btn" title="View Details">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                                <circle cx="12" cy="12" r="3"></circle>
+                                            </svg>
+                                            View
+                                        </button>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                                <?php if (empty($all_users)): ?>
+                                <tr>
+                                    <td colspan="7" style="text-align:center; padding:40px; color:var(--text-muted);">No users found.</td>
+                                </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div id="dirNoResults" style="display:none; text-align:center; padding:50px 0; color:var(--text-muted);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:40px;height:40px;margin-bottom:12px;opacity:0.4;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <p style="font-size:15px; font-weight:600;">No matching users found</p>
+                        <p style="font-size:13px; margin-top:4px;">Try a different name, ID, or initial</p>
+                    </div>
+                </div>
+
             </div>
         </main>
     </div>

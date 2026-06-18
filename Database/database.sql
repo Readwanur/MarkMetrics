@@ -141,6 +141,22 @@ CREATE TABLE grade_correction_requests (
     FOREIGN KEY (resolved_by) REFERENCES users(id)
 );
 
+-- 11b. Withdraw Requests Table
+CREATE TABLE withdraw_requests (
+    request_id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id VARCHAR(50) NOT NULL,
+    course_code VARCHAR(20) NOT NULL,
+    semester_id INT NOT NULL,
+    reason TEXT DEFAULT NULL,
+    status ENUM('Pending', 'Approved', 'Rejected') DEFAULT 'Pending',
+    is_read TINYINT(1) NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    resolved_at TIMESTAMP NULL DEFAULT NULL,
+    FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE,
+    FOREIGN KEY (course_code) REFERENCES courses(course_code) ON DELETE CASCADE,
+    FOREIGN KEY (semester_id) REFERENCES semesters(semester_id)
+);
+
 -- 12. Attendance Table
 CREATE TABLE attendance (
     attendance_id INT AUTO_INCREMENT PRIMARY KEY,

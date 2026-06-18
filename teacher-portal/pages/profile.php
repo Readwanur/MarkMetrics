@@ -6,6 +6,9 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'teacher') {
 }
 include('../../LoginPage/connect2db.php');
 
+// Ensure education_background column exists (missing from base schema)
+@mysqli_query($conn, "ALTER TABLE teachers ADD COLUMN IF NOT EXISTS education_background TEXT NULL");
+
 $teacher_id = $_SESSION['id'];
 ob_start();
 include('noti-helper.php');
@@ -122,7 +125,8 @@ $user_q = mysqli_query($conn, "SELECT u.name, u.email, u.profile_picture_url, t.
                                FROM users u 
                                JOIN teachers t ON u.id = t.teacher_id 
                                WHERE u.id = '$teacher_id'");
-$teacher_data = mysqli_fetch_assoc($user_q);
+$teacher_data = ($user_q) ? mysqli_fetch_assoc($user_q) : [];
+$teacher_data = $teacher_data ?: [];
 
 $teacher_name = $teacher_data['name'] ?? $_SESSION['name'];
 $teacher_email = $teacher_data['email'] ?? $_SESSION['email'];

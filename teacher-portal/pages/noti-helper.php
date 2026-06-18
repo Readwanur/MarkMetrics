@@ -1,21 +1,50 @@
 <?php
+// --- Ensure required DB objects exist ---
+
+// Add is_read column to grade_correction_requests if missing
+@mysqli_query($conn, "ALTER TABLE grade_correction_requests ADD COLUMN IF NOT EXISTS is_read TINYINT(1) NOT NULL DEFAULT 0");
+
+// Create withdraw_requests table if missing
+@mysqli_query($conn, "
+    CREATE TABLE IF NOT EXISTS withdraw_requests (
+        request_id INT AUTO_INCREMENT PRIMARY KEY,
+        student_id VARCHAR(50) NOT NULL,
+        course_code VARCHAR(20) NOT NULL,
+        semester_id INT NOT NULL,
+        reason TEXT,
+        status ENUM('Pending','Approved','Rejected') DEFAULT 'Pending',
+        is_read TINYINT(1) NOT NULL DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        resolved_at TIMESTAMP NULL,
+        FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE,
+        FOREIGN KEY (course_code) REFERENCES courses(course_code) ON DELETE CASCADE,
+        FOREIGN KEY (semester_id) REFERENCES semesters(semester_id)
+    )
+");
+
 // Count GCR pending requests
+$pending_gcr_count = 0;
 $pending_gcr_q = mysqli_query($conn, "
     SELECT COUNT(*) AS total 
     FROM grade_correction_requests gcr 
     JOIN courses c ON gcr.course_code = c.course_code 
     WHERE c.teacher_id = '$teacher_id' AND gcr.status = 'Pending' AND gcr.is_read = 0
 ");
-$pending_gcr_count = mysqli_fetch_assoc($pending_gcr_q)['total'] ?? 0;
+if ($pending_gcr_q) {
+    $pending_gcr_count = (int)(mysqli_fetch_assoc($pending_gcr_q)['total'] ?? 0);
+}
 
 // Count WR pending requests
+$pending_wr_count = 0;
 $pending_wr_q = mysqli_query($conn, "
     SELECT COUNT(*) AS total 
     FROM withdraw_requests wr 
     JOIN courses c ON wr.course_code = c.course_code 
     WHERE c.teacher_id = '$teacher_id' AND wr.status = 'Pending' AND wr.is_read = 0
 ");
-$pending_wr_count = mysqli_fetch_assoc($pending_wr_q)['total'] ?? 0;
+if ($pending_wr_q) {
+    $pending_wr_count = (int)(mysqli_fetch_assoc($pending_wr_q)['total'] ?? 0);
+}
 
 $total_pending_actions = $pending_gcr_count + $pending_wr_count;
 
@@ -24,6 +53,7 @@ $is_subpage = (strpos($_SERVER['SCRIPT_NAME'], '/pages/') !== false);
 $gcr_link = $is_subpage ? 'grade-management.php' : 'pages/grade-management.php';
 $wr_link = $is_subpage ? 'withdraw-request.php' : 'pages/withdraw-request.php';
 ?>
+
 
 <!-- Global Notifications Dropdown Panel -->
 <div id="globalNotificationDropdown" style="display: none; position: absolute; top: calc(100% + 10px); right: 0; width: 320px; background: rgba(26, 26, 36, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 10000; padding: 15px; animation: slideDown 0.2s cubic-bezier(0.4, 0, 0.2, 1); text-align: left;">

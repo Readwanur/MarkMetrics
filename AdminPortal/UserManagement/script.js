@@ -223,14 +223,18 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function performSearch() {
         if (!searchInput || !searchSuggestions) return;
-        const query = searchInput.value.trim();
+        const query = searchInput.value.trim().toLowerCase();
         const role = roleFilter ? roleFilter.value : 'all';
-        
+
+        // --- Update the directory table filter ---
+        filterDirectory(query, role);
+
+        // --- Update search suggestions dropdown ---
         if (query.length === 0) {
             searchSuggestions.style.display = 'none';
             return;
         }
-        
+
         fetch(`index.php?search_users=${encodeURIComponent(query)}&role_filter=${encodeURIComponent(role)}`)
             .then(res => res.json())
             .then(data => {
@@ -239,22 +243,24 @@ document.addEventListener('DOMContentLoaded', () => {
                     data.forEach(user => {
                         const div = document.createElement('div');
                         div.className = 'suggestion-item';
-                        
+
                         let subtitle = `${user.role.charAt(0).toUpperCase() + user.role.slice(1)}`;
                         if (user.role === 'teacher' && user.initials) {
                             subtitle += ` (${user.initials})`;
                         } else {
                             subtitle += ` (${user.id})`;
                         }
-                        
+
                         div.innerHTML = `
                             <div class="suggestion-name">${user.name}</div>
                             <div class="suggestion-id">${subtitle} • Status: ${user.status}</div>
                         `;
-                        
+
                         div.addEventListener('click', () => {
                             searchSuggestions.style.display = 'none';
                             searchInput.value = '';
+                            // Highlight the matching row in directory
+                            highlightDirectoryRow(user.id);
                             showUserDetails(user);
                         });
                         searchSuggestions.appendChild(div);
@@ -270,7 +276,64 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .catch(err => console.error('Search error:', err));
     }
-    
+
+    // --- Directory filtering ---
+    function filterDirectory(query, role) {
+        const rows = document.querySelectorAll('#userDirBody .user-dir-row');
+        const noResults = document.getElementById('dirNoResults');
+        const dirCount = document.getElementById('dirCount');
+        const dirFilterLabel = document.getElementById('dirFilterLabel');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            const name = row.getAttribute('data-name') || '';
+            const id = row.getAttribute('data-id') || '';
+            const initials = row.getAttribute('data-initials') || '';
+            const rowRole = row.getAttribute('data-role') || '';
+
+            const matchesQuery = query === '' || name.includes(query) || id.includes(query) || initials.includes(query);
+            const matchesRole = role === 'all' || rowRole === role;
+
+            if (matchesQuery && matchesRole) {
+                row.classList.remove('dir-hidden');
+                row.classList.remove('dir-highlight');
+                visibleCount++;
+            } else {
+                row.classList.add('dir-hidden');
+                row.classList.remove('dir-highlight');
+            }
+        });
+
+        if (noResults) noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+        if (dirCount) dirCount.textContent = visibleCount;
+
+        // Update filter label
+        if (dirFilterLabel) {
+            if (query && role !== 'all') {
+                dirFilterLabel.textContent = `Filtered: "${query}" · ${role.charAt(0).toUpperCase() + role.slice(1)}s`;
+            } else if (query) {
+                dirFilterLabel.textContent = `Search: "${query}"`;
+            } else if (role !== 'all') {
+                dirFilterLabel.textContent = `Showing ${role.charAt(0).toUpperCase() + role.slice(1)}s`;
+            } else {
+                dirFilterLabel.textContent = 'Showing All';
+            }
+        }
+    }
+
+    // Highlight a specific row by user ID
+    function highlightDirectoryRow(userId) {
+        const rows = document.querySelectorAll('#userDirBody .user-dir-row');
+        rows.forEach(row => row.classList.remove('dir-highlight'));
+        const target = document.querySelector(`#userDirBody .user-dir-row[data-id="${userId.toLowerCase()}"]`);
+        if (target) {
+            target.classList.remove('dir-hidden');
+            target.classList.add('dir-highlight');
+            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+
+
     if (searchInput) {
         searchInput.addEventListener('input', () => {
             clearTimeout(searchDebounceTimer);

@@ -20,41 +20,48 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $safe_id = mysqli_real_escape_string($conn, $id);
         
         if ($role === 'parent') {
-            // Guardian part: ID is student ID. Pass is 123.
-            $student_q = mysqli_query($conn, "SELECT s.parent_id, u.name FROM students s JOIN users u ON s.student_id = u.id WHERE s.student_id = '{$safe_id}'");
-            if ($student_q && mysqli_num_rows($student_q) > 0) {
-                $student_row = mysqli_fetch_assoc($student_q);
-                $parent_id = $student_row['parent_id'];
-                $student_name = $student_row['name'];
-                
-                $need_provision = true;
-                if ($parent_id) {
-                    $user_q = mysqli_query($conn, "SELECT * FROM users WHERE id = '{$parent_id}' AND role = 'parent'");
-                    if ($user_q && mysqli_num_rows($user_q) > 0) {
-                        $data = mysqli_fetch_assoc($user_q);
-                        $user_found = true;
-                        $need_provision = false;
+            // Method 1: Direct parent ID login (e.g. PAR-901 entered directly)
+            $direct_q = mysqli_query($conn, "SELECT * FROM users WHERE id = '{$safe_id}' AND role = 'parent'");
+            if ($direct_q && mysqli_num_rows($direct_q) > 0) {
+                $data = mysqli_fetch_assoc($direct_q);
+                $user_found = true;
+            } else {
+                // Method 2: Student ID lookup — find the linked parent account
+                $student_q = mysqli_query($conn, "SELECT s.parent_id, u.name FROM students s JOIN users u ON s.student_id = u.id WHERE s.student_id = '{$safe_id}'");
+                if ($student_q && mysqli_num_rows($student_q) > 0) {
+                    $student_row = mysqli_fetch_assoc($student_q);
+                    $parent_id = $student_row['parent_id'];
+                    $student_name = $student_row['name'];
+
+                    $need_provision = true;
+                    if ($parent_id) {
+                        $user_q = mysqli_query($conn, "SELECT * FROM users WHERE id = '{$parent_id}' AND role = 'parent'");
+                        if ($user_q && mysqli_num_rows($user_q) > 0) {
+                            $data = mysqli_fetch_assoc($user_q);
+                            $user_found = true;
+                            $need_provision = false;
+                        }
                     }
-                }
-                
-                if ($need_provision) {
-                    $new_parent_id = 'PAR-' . $safe_id;
-                    $parent_name = 'Guardian of ' . $student_name;
-                    $parent_email = 'guardian.' . $safe_id . '@markmetrics.edu';
-                    
-                    // Create parent user if it doesn't exist
-                    $check_user = mysqli_query($conn, "SELECT * FROM users WHERE id = '{$new_parent_id}' AND role = 'parent'");
-                    if (mysqli_num_rows($check_user) == 0) {
-                        mysqli_query($conn, "INSERT INTO users (id, name, email, password_hash, role, status) VALUES ('{$new_parent_id}', '{$parent_name}', '{$parent_email}', '123', 'parent', 'Active')");
-                    }
-                    
-                    // Link student to this parent
-                    mysqli_query($conn, "UPDATE students SET parent_id = '{$new_parent_id}' WHERE student_id = '{$safe_id}'");
-                    
-                    $user_q = mysqli_query($conn, "SELECT * FROM users WHERE id = '{$new_parent_id}' AND role = 'parent'");
-                    if ($user_q && mysqli_num_rows($user_q) > 0) {
-                        $data = mysqli_fetch_assoc($user_q);
-                        $user_found = true;
+
+                    if ($need_provision) {
+                        $new_parent_id = 'PAR-' . $safe_id;
+                        $parent_name = 'Guardian of ' . $student_name;
+                        $parent_email = 'guardian.' . $safe_id . '@markmetrics.edu';
+
+                        // Create parent user if it doesn't exist
+                        $check_user = mysqli_query($conn, "SELECT * FROM users WHERE id = '{$new_parent_id}' AND role = 'parent'");
+                        if (mysqli_num_rows($check_user) == 0) {
+                            mysqli_query($conn, "INSERT INTO users (id, name, email, password_hash, role, status) VALUES ('{$new_parent_id}', '{$parent_name}', '{$parent_email}', '123', 'parent', 'Active')");
+                        }
+
+                        // Link student to this parent
+                        mysqli_query($conn, "UPDATE students SET parent_id = '{$new_parent_id}' WHERE student_id = '{$safe_id}'");
+
+                        $user_q = mysqli_query($conn, "SELECT * FROM users WHERE id = '{$new_parent_id}' AND role = 'parent'");
+                        if ($user_q && mysqli_num_rows($user_q) > 0) {
+                            $data = mysqli_fetch_assoc($user_q);
+                            $user_found = true;
+                        }
                     }
                 }
             }
@@ -304,7 +311,7 @@ mysqli_close($conn);
                     // Update ID placeholder dynamically
                     const idInput = document.getElementById('id');
                     if (roleVal === 'parent') {
-                        idInput.placeholder = 'Enter student ID';
+                        idInput.placeholder = 'Enter your PAR-xxx ID or student\'s ID';
                     } else if (roleVal === 'teacher') {
                         idInput.placeholder = 'Enter teacher initials (e.g. MB)';
                     } else if (roleVal === 'student') {
