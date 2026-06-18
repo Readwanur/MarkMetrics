@@ -56,6 +56,7 @@ CREATE TABLE students (
     student_id VARCHAR(50) PRIMARY KEY,
     program_id INT, 
     date_of_birth DATE,
+    mothers_name VARCHAR(255) DEFAULT 'Unknown',
     academic_year VARCHAR(50), 
     current_academic_year VARCHAR(50), 
     enrollment_term VARCHAR(50), -- Could be normalized further but left for readability
@@ -92,10 +93,12 @@ CREATE TABLE enrollments (
     enrollment_id INT AUTO_INCREMENT PRIMARY KEY,
     student_id VARCHAR(50) NOT NULL,
     course_code VARCHAR(20) NOT NULL,
-    semester_id INT NOT NULL, -- Normalized link
+    semester_id INT NOT NULL,
     midterm_score DECIMAL(5,2),
     final_score DECIMAL(5,2),
-    total_score DECIMAL(5,2) GENERATED ALWAYS AS (COALESCE(midterm_score, 0) + COALESCE(final_score, 0)) STORED,
+    ct_score DECIMAL(5,2),
+    assignment_score DECIMAL(5,2),
+    total_score DECIMAL(5,2) GENERATED ALWAYS AS (COALESCE(midterm_score, 0) + COALESCE(final_score, 0) + COALESCE(ct_score, 0) + COALESCE(assignment_score, 0)) STORED,
     -- Grade and points could be derived, but kept for historical snapshot (Standard 3NF would move these to a View)
     grade VARCHAR(5), 
     points DECIMAL(3,2), 
@@ -138,6 +141,22 @@ CREATE TABLE grade_correction_requests (
     FOREIGN KEY (resolved_by) REFERENCES users(id)
 );
 
+-- 11b. Withdraw Requests Table
+CREATE TABLE withdraw_requests (
+    request_id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id VARCHAR(50) NOT NULL,
+    course_code VARCHAR(20) NOT NULL,
+    semester_id INT NOT NULL,
+    reason TEXT DEFAULT NULL,
+    status ENUM('Pending', 'Approved', 'Rejected') DEFAULT 'Pending',
+    is_read TINYINT(1) NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    resolved_at TIMESTAMP NULL DEFAULT NULL,
+    FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE,
+    FOREIGN KEY (course_code) REFERENCES courses(course_code) ON DELETE CASCADE,
+    FOREIGN KEY (semester_id) REFERENCES semesters(semester_id)
+);
+
 -- 12. Attendance Table
 CREATE TABLE attendance (
     attendance_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -157,6 +176,29 @@ CREATE TABLE upcoming_tasks (
     title VARCHAR(255) NOT NULL, 
     task_type ENUM('Exam', 'Assignment', 'Presentation') NOT NULL,
     due_date DATETIME NOT NULL,
+    FOREIGN KEY (course_code) REFERENCES courses(course_code) ON DELETE CASCADE
+);
+
+-- 14. Student Finances Table (NEW)
+CREATE TABLE student_finances (
+    finance_id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id VARCHAR(50) NOT NULL,
+    total_billed DECIMAL(10,2) DEFAULT 0,
+    paid_amount DECIMAL(10,2) DEFAULT 0,
+    waived_amount DECIMAL(10,2) DEFAULT 0,
+    balance DECIMAL(10,2) GENERATED ALWAYS AS (total_billed - paid_amount - waived_amount) STORED,
+    FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE,
+    UNIQUE KEY unique_student_finance (student_id)
+);
+
+-- 15. Class Schedules Table (NEW)
+CREATE TABLE class_schedules (
+    schedule_id INT AUTO_INCREMENT PRIMARY KEY,
+    course_code VARCHAR(20) NOT NULL,
+    day_of_week ENUM('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') NOT NULL,
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
+    room_number VARCHAR(20),
     FOREIGN KEY (course_code) REFERENCES courses(course_code) ON DELETE CASCADE
 );
 
@@ -182,16 +224,17 @@ INSERT INTO semesters (semester_name, academic_year) VALUES
 
 -- Populate Grading Scale (Normalized)
 INSERT INTO grading_scale (grade, min_score, max_score, points) VALUES 
-('A+', 90.00, 100.00, 4.00),
-('A',  85.00, 89.99, 3.75),
-('A-', 80.00, 84.99, 3.67),
-('B+', 75.00, 79.99, 3.33),
-('B',  70.00, 74.99, 3.00),
-('B-', 65.00, 69.99, 2.67),
-('C+', 60.00, 64.99, 2.33),
-('C',  55.00, 59.99, 2.00),
-('D+', 50.00, 54.99, 1.33),
-('F',  0.00,  49.99, 0.00);
+('A',  90.00, 100.00, 4.00),
+('A-', 86.00,  89.99, 3.67),
+('B+', 82.00,  85.99, 3.33),
+('B',  78.00,  81.99, 3.00),
+('B-', 74.00,  77.99, 2.67),
+('C+', 70.00,  73.99, 2.33),
+('C',  66.00,  69.99, 2.00),
+('C-', 62.00,  65.99, 1.67),
+('D+', 58.00,  61.99, 1.33),
+('D',  55.00,  57.99, 1.00),
+('F',  0.00,   54.99, 0.00);
 
 -- Populate Programs (Standardized Codes)
 INSERT INTO programs (program_code, name, department_id, total_credits) VALUES 

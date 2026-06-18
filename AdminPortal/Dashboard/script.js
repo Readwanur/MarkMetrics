@@ -68,6 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Search functionality ---
     const searchInput = document.getElementById('searchInput');
     const searchSuggestions = document.getElementById('searchSuggestions');
+    const roleFilterDropdown = document.getElementById('roleFilter');
     const modalOverlay = document.getElementById('userInfoModal');
     const closeModalBtn = document.getElementById('closeModalBtn');
 
@@ -84,7 +85,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             debounceTimer = setTimeout(() => {
-                fetch(`index.php?action=search&q=${encodeURIComponent(query)}`)
+                const role = roleFilterDropdown ? roleFilterDropdown.value : 'all';
+                fetch(`index.php?action=search&q=${encodeURIComponent(query)}&role=${encodeURIComponent(role)}`)
                     .then(response => response.json())
                     .then(data => {
                         searchSuggestions.innerHTML = '';
@@ -116,13 +118,25 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 300);
         });
 
+        if (roleFilterDropdown) {
+            roleFilterDropdown.addEventListener('change', () => {
+                if (searchInput.value.trim().length > 0) {
+                    searchInput.dispatchEvent(new Event('input'));
+                }
+            });
+        }
+
         // Hide suggestions when clicking outside
         document.addEventListener('click', function (e) {
-            if (!searchInput.contains(e.target) && !searchSuggestions.contains(e.target)) {
+            if (!searchInput.contains(e.target) && !searchSuggestions.contains(e.target) && (!roleFilterDropdown || !roleFilterDropdown.contains(e.target))) {
                 searchSuggestions.style.display = 'none';
             }
         });
     }
+
+    let selectedUser = null;
+    const suspendUserBtn = document.getElementById('suspendUserBtn');
+    const unsuspendUserBtn = document.getElementById('unsuspendUserBtn');
 
     function fetchUserDetails(id) {
         fetch(`index.php?action=user_info&id=${encodeURIComponent(id)}`)
@@ -130,6 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(data => {
                 if (data.error) return alert(data.error);
 
+                selectedUser = data;
                 document.getElementById('modalUserName').textContent = data.name || 'N/A';
                 document.getElementById('modalUserRole').textContent = data.role || 'User';
 
@@ -161,6 +176,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 document.getElementById('modalUserDetails').innerHTML = detailsHTML;
+
+                // Show correct button based on status
+                if (data.status === 'Inactive') {
+                    if (suspendUserBtn) suspendUserBtn.style.display = 'none';
+                    if (unsuspendUserBtn) unsuspendUserBtn.style.display = 'block';
+                } else {
+                    if (suspendUserBtn) suspendUserBtn.style.display = 'block';
+                    if (unsuspendUserBtn) unsuspendUserBtn.style.display = 'none';
+                }
+
                 modalOverlay.style.display = 'flex';
             })
             .catch(err => console.error('Error fetching user info:', err));
@@ -237,6 +262,244 @@ document.addEventListener('DOMContentLoaded', () => {
             .catch(err => console.error('Audit log poll error:', err));
     }
 
+    // --- User Directory Actions ---
+    if (suspendUserBtn) {
+        suspendUserBtn.addEventListener('click', () => {
+            if (selectedUser && confirm(`Are you sure you want to suspend user ${selectedUser.name}?`)) {
+                updateUserStatus('Inactive');
+            }
+        });
+    }
+
+    if (unsuspendUserBtn) {
+        unsuspendUserBtn.addEventListener('click', () => {
+            if (selectedUser && confirm(`Are you sure you want to unsuspend user ${selectedUser.name}?`)) {
+                updateUserStatus('Active');
+            }
+        });
+    }
+
+    function updateUserStatus(newStatus) {
+        if (!selectedUser) return;
+        
+        const formData = new FormData();
+        formData.append('update_status', '1');
+        formData.append('user_id', selectedUser.id);
+        formData.append('status', newStatus);
+        
+        fetch('index.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                selectedUser.status = newStatus;
+                fetchUserDetails(selectedUser.id);
+                loadUserDirectory(currentDirPage);
+                if (typeof fetchAuditLogs === 'function') {
+                    fetchAuditLogs();
+                }
+            } else {
+                alert('Error changing user status: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            alert('Failed to update status.');
+        });
+    }
+
+    // --- Directory Loading and Pagination ---
+    let currentDirPage = 1;
+    let currentDirRole = 'all';
+    let currentSortField = ''; // 'name' or 'id'
+    let currentSortOrder = 'asc'; // 'asc' or 'desc'
+
+    function loadUserDirectory(page) {
+        currentDirPage = page;
+        const tbody = document.getElementById('registryBody');
+        const countSpan = document.getElementById('directoryTotalCount');
+        if (!tbody) return;
+        
+        const sortParam = currentSortField ? `${currentSortField}_${currentSortOrder}` : '';
+        fetch(`index.php?action=fetch_directory&page=${page}&role=${encodeURIComponent(currentDirRole)}&sort=${encodeURIComponent(sortParam)}`)
+            .then(res => res.json())
+            .then(data => {
+                tbody.innerHTML = '';
+                
+                if (data.users && data.users.length > 0) {
+                    data.users.forEach(u => {
+                        const tr = document.createElement('tr');
+                        
+                        const avatarLetter = u.name.trim().charAt(0).toUpperCase();
+                        const avatarBg = u.role === 'teacher' ? '#3b82f6' : '#22c55e';
+                        const initialsDisplay = (u.role === 'teacher' && u.initials) ? u.initials : u.id;
+                        
+                        const isActive = u.status === 'Active';
+                        const statusColor = isActive ? '#22c55e' : (u.status === 'Inactive' ? '#ef4444' : '#f59e0b');
+                        const statusBg = isActive ? 'rgba(34,197,94,0.12)' : (u.status === 'Inactive' ? 'rgba(239,68,68,0.12)' : 'rgba(245,158,11,0.12)');
+                        
+                        tr.innerHTML = `
+                            <td>
+                                <div class="user-cell">
+                                    <div class="user-avatar-sm" style="background: ${avatarBg}; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff; font-size: 14px; border: none;">
+                                        ${avatarLetter}
+                                    </div>
+                                    <div>
+                                        <div class="user-name">${escapeHTML(u.name)}</div>
+                                        <div class="user-dept">${escapeHTML(u.dept_name || 'N/A')}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span style="font-family: monospace; font-size: 13px; color: var(--text-secondary);">${escapeHTML(initialsDisplay)}</span></td>
+                            <td><span class="role-text" style="color: ${u.role === 'teacher' ? '#60a5fa' : '#4ade80'};">${u.role.charAt(0).toUpperCase() + u.role.slice(1)}</span></td>
+                            <td>
+                                <span class="status-badge" style="background: ${statusBg}; color: ${statusColor}; border: 1px solid rgba(${isActive ? '34,197,94' : '239,68,68'}, 0.25); padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+                                    <span class="status-badge-dot" style="background: ${statusColor};"></span>
+                                    ${escapeHTML(u.status)}
+                                </span>
+                            </td>
+                            <td>
+                                <button class="view-user-btn" style="background: var(--card-bg-lighter); border: 1px solid var(--border-color); border-radius: 6px; color: var(--accent-orange); font-size: 12px; font-weight: 600; padding: 6px 14px; cursor: pointer; transition: all 0.2s;" onmouseenter="this.style.background='var(--accent-orange)'; this.style.color='#fff'; this.style.borderColor='var(--accent-orange)'" onmouseleave="this.style.background='var(--card-bg-lighter)'; this.style.color='var(--accent-orange)'; this.style.borderColor='var(--border-color)'">View</button>
+                            </td>
+                        `;
+                        
+                        const viewBtn = tr.querySelector('.view-user-btn');
+                        if (viewBtn) {
+                            viewBtn.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                fetchUserDetails(u.id);
+                            });
+                        }
+                        
+                        tbody.appendChild(tr);
+                    });
+                } else {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 30px;">No matching users found</td>
+                        </tr>
+                    `;
+                }
+                
+                if (countSpan) {
+                    countSpan.textContent = `Total ${data.total_users} users`;
+                }
+                
+                renderPagination(data.total_pages, data.current_page);
+            })
+            .catch(err => console.error('Directory fetch error:', err));
+    }
+
+    function renderPagination(totalPages, currentPage) {
+        const pagination = document.getElementById('directoryPagination');
+        if (!pagination) return;
+        pagination.innerHTML = '';
+        
+        if (totalPages <= 1) return;
+        
+        // Prev Button
+        const prevBtn = document.createElement('button');
+        prevBtn.textContent = 'Prev';
+        prevBtn.className = 'pagination-btn';
+        prevBtn.disabled = currentPage === 1;
+        prevBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            loadUserDirectory(currentPage - 1);
+        });
+        pagination.appendChild(prevBtn);
+        
+        // Page numbers
+        for (let i = 1; i <= totalPages; i++) {
+            const pageBtn = document.createElement('button');
+            pageBtn.textContent = i;
+            pageBtn.className = i === currentPage ? 'pagination-btn active' : 'pagination-btn';
+            pageBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                loadUserDirectory(i);
+            });
+            pagination.appendChild(pageBtn);
+        }
+        
+        // Next Button
+        const nextBtn = document.createElement('button');
+        nextBtn.textContent = 'Next';
+        nextBtn.className = 'pagination-btn';
+        nextBtn.disabled = currentPage === totalPages;
+        nextBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            loadUserDirectory(currentPage + 1);
+        });
+        pagination.appendChild(nextBtn);
+    }
+
+    function escapeHTML(str) {
+        if (!str) return '';
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+    }
+
+    // Wire sorting & filter
+    const thSortName = document.getElementById('thSortName');
+    const thSortId = document.getElementById('thSortId');
+    const dirFilter = document.getElementById('dirRoleFilter');
+
+    function updateSortIndicators() {
+        const indicatorName = document.getElementById('sortIndicatorName');
+        const indicatorId = document.getElementById('sortIndicatorId');
+        const thName = document.getElementById('thSortName');
+        const thId = document.getElementById('thSortId');
+        
+        if (!indicatorName || !indicatorId || !thName || !thId) return;
+        
+        // Reset styles and text
+        indicatorName.textContent = '⇅';
+        indicatorId.textContent = '⇅';
+        thName.style.color = '';
+        thId.style.color = '';
+        
+        if (currentSortField === 'name') {
+            thName.style.color = 'var(--accent-orange)';
+            indicatorName.textContent = currentSortOrder === 'asc' ? '▲' : '▼';
+        } else if (currentSortField === 'id') {
+            thId.style.color = 'var(--accent-orange)';
+            indicatorId.textContent = currentSortOrder === 'asc' ? '▲' : '▼';
+        }
+    }
+
+    if (thSortName) {
+        thSortName.addEventListener('click', () => {
+            if (currentSortField === 'name') {
+                currentSortOrder = currentSortOrder === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSortField = 'name';
+                currentSortOrder = 'asc';
+            }
+            updateSortIndicators();
+            loadUserDirectory(1);
+        });
+    }
+
+    if (thSortId) {
+        thSortId.addEventListener('click', () => {
+            if (currentSortField === 'id') {
+                currentSortOrder = currentSortOrder === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSortField = 'id';
+                currentSortOrder = 'asc';
+            }
+            updateSortIndicators();
+            loadUserDirectory(1);
+        });
+    }
+
+    if (dirFilter) {
+        dirFilter.addEventListener('change', () => {
+            currentDirRole = dirFilter.value;
+            loadUserDirectory(1);
+        });
+    }
+
     // Initialize
     if (auditList) {
         lastKnownLogId = getInitialLogId();
@@ -245,4 +508,96 @@ document.addEventListener('DOMContentLoaded', () => {
         // Also fetch immediately to sync
         fetchAuditLogs();
     }
+
+    // Initial load
+    loadUserDirectory(1);
 });
+
+// ===== Admin Notification Bell =====
+function toggleAdminNoti(event) {
+    if (event) event.stopPropagation();
+    const dropdown = document.getElementById('adminNotiDropdown');
+    if (!dropdown) return;
+
+    const isVisible = dropdown.style.display !== 'none';
+    if (isVisible) {
+        dropdown.style.display = 'none';
+        return;
+    }
+
+    // Populate with recent audit log items
+    dropdown.style.display = 'block';
+    const notiContent = document.getElementById('notiContent');
+    const notiCount = document.getElementById('notiCount');
+
+    fetch('index.php?action=fetch_audit_logs')
+        .then(res => res.json())
+        .then(logs => {
+            if (!logs || logs.length === 0) {
+                notiContent.innerHTML = '<div class="noti-empty">✓ No recent activity</div>';
+                if (notiCount) notiCount.textContent = '0 events';
+                return;
+            }
+            if (notiCount) notiCount.textContent = logs.length + ' Recent';
+            let html = '';
+            logs.slice(0, 6).forEach(log => {
+                html += `
+                <div style="display:flex; align-items:flex-start; gap:10px; padding:10px; border-radius:8px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.04); margin-bottom:6px;">
+                    <div style="width:8px; height:8px; border-radius:50%; background:var(--accent-orange); flex-shrink:0; margin-top:5px;"></div>
+                    <div>
+                        <div style="font-size:12px; color:#e4e4e7; line-height:1.4;">${log.description || log.action || 'System event'}</div>
+                        <div style="font-size:10px; color:#71717a; margin-top:3px;">${log.time_label || ''}</div>
+                    </div>
+                </div>`;
+            });
+            notiContent.innerHTML = html;
+        })
+        .catch(() => {
+            notiContent.innerHTML = '<div class="noti-empty">Failed to load notifications</div>';
+        });
+}
+
+// Close notification dropdown when clicking outside
+document.addEventListener('click', function(e) {
+    const dropdown = document.getElementById('adminNotiDropdown');
+    const bellBtn = document.getElementById('notificationBtn');
+    if (dropdown && dropdown.style.display === 'block') {
+        if (!dropdown.contains(e.target) && (!bellBtn || !bellBtn.contains(e.target))) {
+            dropdown.style.display = 'none';
+        }
+    }
+});
+
+// ===== Live Clock for Top Bar =====
+function updateClock() {
+    const dateSpan = document.getElementById('topBarDate');
+    const timeSpan = document.getElementById('topBarTime');
+    if (!dateSpan || !timeSpan) return;
+
+    const now = new Date();
+    const day = now.getDate();
+    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const month = months[now.getMonth()];
+    
+    let suffix = "th";
+    if (day === 1 || day === 21 || day === 31) suffix = "st";
+    else if (day === 2 || day === 22) suffix = "nd";
+    else if (day === 3 || day === 23) suffix = "rd";
+    
+    dateSpan.textContent = `${day}${suffix} ${month}`;
+    
+    let hours = now.getHours();
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+    const hoursStr = hours.toString().padStart(2, '0');
+    
+    timeSpan.textContent = `${hoursStr}:${minutes} ${ampm}`;
+}
+document.addEventListener('DOMContentLoaded', () => {
+    updateClock();
+    setInterval(updateClock, 1000);
+});
+
+

@@ -1,17 +1,35 @@
+/* ═══════════════════════════════════════════
+   GLOBAL DESIGN TOKENS / COLOR PALETTE
+   Defines all CSS custom properties used across
+   the Grade Management page for consistent
+   dark theming, including status colors
+   (success, error, warning).
+   ═══════════════════════════════════════════ */
 :root {
     --bg-dark: #0a0a0a;
     --sidebar-bg: #1A1A1A;
     --card-bg: #1a1a1a;
     --card-border: #2D2D2D;
     --primary-orange: #F37021;
+    --primary-orange-hover: #e05a00;
+    --primary-orange-glow: rgba(243, 112, 33, 0.25);
     --text-main: #FFFFFF;
     --text-muted: #A1A1AA;
-    --input-bg: #222222;
+    --text-dim: #71717a;
+    --input-bg: #141414;
+    --input-border: #2D2D2D;
     --blue-glow: #4dabf7;
     --success-green: #40c057;
     --error-red: #fa5252;
+    --warning-yellow: #fab005;
 }
 
+/* ═══════════════════════════════════════════
+   GLOBAL RESET
+   Strips browser defaults — no margin/padding,
+   border-box sizing, and sets Inter as the
+   base font for the entire page.
+   ═══════════════════════════════════════════ */
 * {
     margin: 0;
     padding: 0;
@@ -19,17 +37,29 @@
     font-family: 'Inter', sans-serif;
 }
 
+/* ═══════════════════════════════════════════
+   BODY
+   Dark background, white text, full viewport
+   height, and no horizontal scroll.
+   ═══════════════════════════════════════════ */
 body {
     background-color: var(--bg-dark);
     color: var(--text-main);
     overflow-x: hidden;
+    min-height: 100vh;
 }
 
+/* ═══════════════════════════════════════════
+   SIDEBAR
+   ═══════════════════════════════════════════ */
+
+/* App layout flex container */
 .app-container {
     display: flex;
     min-height: 100vh;
 }
 
+/* Fixed 260px left sidebar with nav links */
 .sidebar {
     width: 260px;
     background-color: var(--sidebar-bg);
@@ -44,22 +74,26 @@ body {
     z-index: 100;
 }
 
+/* Sidebar header — holds the MarkMetrics logo */
 .sidebar-header {
     padding: 0 24px 32px;
     display: flex;
     align-items: center;
 }
 
+/* MarkMetrics logo image */
 .main-logo {
     height: 65px;
     width: auto;
     object-fit: contain;
 }
 
+/* Sidebar nav link container */
 .sidebar-nav {
     flex: 1;
 }
 
+/* Individual nav link — icon + label row */
 .nav-item {
     position: relative;
     display: flex;
@@ -73,16 +107,19 @@ body {
     transition: all 0.2s ease;
 }
 
+/* Nav link hover state */
 .nav-item:hover {
     color: var(--text-main);
     background-color: rgba(255, 255, 255, 0.05);
 }
 
+/* Nav link active/selected state (orange text) */
 .nav-item.active {
     color: var(--primary-orange);
     background-color: rgba(243, 112, 33, 0.08);
 }
 
+/* Glowing orange bar on the left edge of the active nav item */
 .active-indicator {
     position: absolute;
     left: 0;
@@ -95,25 +132,62 @@ body {
     box-shadow: 2px 0 10px rgba(243, 112, 33, 0.5);
 }
 
+/* Sidebar footer — Support & Log Out links, pinned to bottom */
 .sidebar-footer {
-    padding: 24px 0;
+    padding: 16px 0 24px;
     border-top: 1px solid var(--card-border);
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
     margin-top: auto;
 }
 
+/* Orange pill logout button — matches teacher portal */
+.sidebar-footer a[href="logout.php"],
+.sidebar-footer .nav-item.logout-btn {
+    margin: 4px 16px 0;
+    background-color: var(--primary-orange);
+    color: #fff !important;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-weight: 600;
+    font-size: 13px;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+}
+
+.sidebar-footer a[href="logout.php"]:hover,
+.sidebar-footer .nav-item.logout-btn:hover {
+    background-color: var(--primary-orange-hover) !important;
+    color: #fff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(243, 112, 33, 0.35);
+}
+
+/* Notification dropdown inside header-actions */
+.header-actions {
+    position: relative;
+}
+
+/* ═══════════════════════════════════════════
+   MAIN CONTENT
+   ═══════════════════════════════════════════ */
+
+/* Main content area offset by 260px (sidebar width) */
 .main-content {
     margin-left: 260px;
     flex: 1;
     padding: 32px 48px;
 }
 
+/* Top header container with breadcrumb + title row */
 .top-header {
-    margin-bottom: 40px;
+    margin-bottom: 32px;
 }
 
+/* Breadcrumb trail — "STUDENT PORTAL › GRADE MANAGEMENT" */
 .breadcrumb {
     font-size: 11px;
     font-weight: 700;
@@ -124,120 +198,87 @@ body {
     margin-bottom: 12px;
 }
 
-.muted {
-    color: var(--text-muted);
-}
+/* Breadcrumb text color helpers */
+.muted { color: var(--text-muted); }
+.orange { color: var(--primary-orange); }
+.separator { font-size: 14px; color: var(--text-dim); }
 
-.orange {
-    color: var(--primary-orange);
-}
-
-.separator {
-    font-size: 14px;
-}
-
+/* Header main row — title on left, actions on right */
 .header-main {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
 }
 
+/* "Grade Management" page heading */
 .header-left h1 {
     font-size: 32px;
     font-weight: 800;
     margin-bottom: 8px;
+    letter-spacing: -0.02em;
 }
 
+/* Page subtitle/description text */
+.header-left .muted {
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* Right side of header — stat pills + action buttons */
 .header-right {
     display: flex;
     align-items: center;
     gap: 32px;
 }
 
-.header-stats-row {
-    margin-top: 24px;
-    display: flex;
-}
-
-.stats-card {
-    display: flex;
-    align-items: center;
-    background: #1A1A1A;
-    padding: 16px 32px;
-    border-radius: 12px;
-    border: 1px solid var(--card-border);
-}
-
-.stat-pill {
-    display: flex;
-    flex-direction: column;
-}
-
-.stat-divider {
-    width: 1px;
-    height: 32px;
-    background: var(--card-border);
-    margin: 0 32px;
-}
-
-.pill-label {
-    font-size: 10px;
-    font-weight: 700;
-    color: var(--text-muted);
-    margin-bottom: 4px;
-    letter-spacing: 0.5px;
-}
-
-.pill-value {
-    font-size: 22px;
-    font-weight: 800;
-}
-
-.orange-text {
-    color: var(--primary-orange);
-}
-
-.blue-text {
-    color: var(--blue-glow);
-}
-
+/* Action buttons row (bell, gear, avatar) */
 .header-actions {
     display: flex;
     align-items: center;
     gap: 16px;
 }
 
+/* Unified Notification Button Styling */
 .icon-btn {
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    cursor: pointer;
-    position: relative;
-    padding: 8px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: color 0.2s;
+    border: 1px solid var(--card-border);
+    background: rgba(255, 255, 255, 0.03);
+    cursor: pointer;
+    position: relative;
+    color: var(--text-muted);
+    transition: all 0.2s ease;
+    padding: 0;
+    outline: none;
 }
 
-.icon-btn i {
-    font-size: 20px;
-}
+.icon-btn i { font-size: 20px; }
 
 .icon-btn:hover {
+    border-color: var(--primary-orange);
     color: var(--text-main);
+    transform: scale(1.05);
+    background: rgba(243, 112, 33, 0.05);
 }
 
+/* Unified Notification Badge */
 .notification-dot {
     position: absolute;
-    top: 6px;
-    right: 6px;
-    width: 6px;
-    height: 6px;
-    background: var(--primary-orange);
+    top: -2px;
+    right: -2px;
+    width: 8px;
+    height: 8px;
+    background-color: var(--primary-orange);
     border-radius: 50%;
+    border: 2px solid var(--bg-dark);
+    box-shadow: 0 0 8px rgba(243, 112, 33, 0.6);
 }
 
+/* User profile avatar (rounded image with hover effect) */
 .user-avatar {
     width: 40px;
     height: 40px;
@@ -259,12 +300,144 @@ body {
     transform: scale(1.05);
 }
 
+/* ═══════════════════════════════════════════
+   STATS ROW
+   ═══════════════════════════════════════════ */
+
+/* Stats row container below the header */
+.header-stats-row {
+    margin-top: 24px;
+    display: flex;
+}
+
+/* Stats pill card — dark card containing stat pills + dividers */
+.stats-card {
+    display: flex;
+    align-items: center;
+    background: var(--sidebar-bg);
+    padding: 16px 32px;
+    border-radius: 12px;
+    border: 1px solid var(--card-border);
+}
+
+/* Individual stat pill (label + value stack) */
+.stat-pill {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Vertical divider between stat pills */
+.stat-divider {
+    width: 1px;
+    height: 32px;
+    background: var(--card-border);
+    margin: 0 32px;
+}
+
+/* Stat pill uppercase label (e.g., "PENDING REQUESTS") */
+.pill-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    letter-spacing: 0.5px;
+}
+
+/* Stat pill large value number */
+.pill-value {
+    font-size: 22px;
+    font-weight: 800;
+}
+
+/* Colored text helpers for stat values */
+.orange-text { color: var(--primary-orange); }
+.blue-text { color: var(--blue-glow); }
+.green-text { color: var(--success-green); }
+
+/* ═══════════════════════════════════════════
+   TAB NAVIGATION
+   ═══════════════════════════════════════════ */
+
+/* Tab navigation bar — "Grade Correction" | "Course Withdrawal" */
+.tab-nav {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 24px;
+    background: var(--sidebar-bg);
+    padding: 4px;
+    border-radius: 12px;
+    border: 1px solid var(--card-border);
+    width: fit-content;
+}
+
+/* Individual tab button */
+.tab-btn {
+    padding: 10px 24px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.25s ease;
+}
+
+.tab-btn i {
+    font-size: 16px;
+}
+
+/* Tab button hover state */
+.tab-btn:hover {
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Active tab — orange background with glow */
+.tab-btn.active {
+    background: var(--primary-orange);
+    color: white;
+    box-shadow: 0 2px 10px var(--primary-orange-glow);
+}
+
+/* Tab panel content — hidden by default */
+.tab-panel {
+    display: none;
+}
+
+/* Active tab panel — visible with fade-slide-in animation */
+.tab-panel.active {
+    display: block;
+    animation: fadeSlideIn 0.3s ease forwards;
+}
+
+/* Tab panel entrance animation */
+@keyframes fadeSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ═══════════════════════════════════════════
+   CONTENT GRID
+   ═══════════════════════════════════════════ */
+
+/* 2-column grid — form on left (1.8fr), activity sidebar on right (1fr) */
 .content-grid {
     display: grid;
     grid-template-columns: 1.8fr 1fr;
     gap: 32px;
 }
 
+/* Base card component (dark bg, rounded, bordered) */
 .card {
     background: var(--card-bg);
     border: 1px solid var(--card-border);
@@ -272,27 +445,104 @@ body {
     padding: 24px;
 }
 
+/* Form card variant — vertical layout with gap between fields */
 .form-card {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 20px;
 }
 
+/* Card title row — icon + label (e.g., "Grade Correction Request") */
 .card-title {
     display: flex;
     align-items: center;
     gap: 12px;
     font-weight: 600;
-    font-size: 18px;
-    margin-bottom: 8px;
+    font-size: 16px;
 }
 
+/* ═══════════════════════════════════════════
+   STUDENT INFO BAR
+   ═══════════════════════════════════════════ */
+
+/* Student info bar — shows student name, ID, and "ACTIVE STUDENT" badge */
+.student-info-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, rgba(243, 112, 33, 0.08) 0%, rgba(243, 112, 33, 0.02) 100%);
+    border: 1px solid rgba(243, 112, 33, 0.15);
+    border-radius: 12px;
+}
+
+/* Left side of student info — avatar + name/ID */
+.student-info-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+/* Small student avatar — orange gradient circle with icon */
+.student-avatar-small {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--primary-orange), #ff9a44);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+    box-shadow: 0 4px 12px var(--primary-orange-glow);
+}
+
+/* Student name + ID text container */
+.student-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+/* Student name text */
+.student-name {
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--text-main);
+}
+
+/* Student ID — monospace font for readability */
+.student-id-display {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 500;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 0.5px;
+}
+
+/* "ACTIVE STUDENT" green badge */
+.badge-active {
+    font-size: 10px;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: rgba(64, 192, 87, 0.12);
+    color: var(--success-green);
+    letter-spacing: 0.5px;
+}
+
+/* ═══════════════════════════════════════════
+   FORM ELEMENTS
+   ═══════════════════════════════════════════ */
+
+/* Input field group — label + input/select/textarea */
 .input-group {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
 }
 
+/* Input group label — small uppercase text */
 .input-group label {
     font-size: 11px;
     font-weight: 700;
@@ -300,287 +550,813 @@ body {
     letter-spacing: 0.5px;
 }
 
-.search-wrapper {
-    position: relative;
-}
-
-input[type="text"],
-select,
-textarea {
-    width: 100%;
-    background: var(--input-bg);
-    border: 1px solid var(--card-border);
-    border-radius: 8px;
-    padding: 14px 16px;
-    color: var(--text-main);
-    font-size: 14px;
-    outline: none;
-    transition: border-color 0.2s;
-}
-
-input:focus,
-select:focus,
-textarea:focus {
-    border-color: var(--primary-orange);
-}
-
-.kbd-shortcuts {
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    display: flex;
-    gap: 4px;
-}
-
-kbd {
-    background: #333;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 10px;
-    color: var(--text-muted);
-}
-
+/* Horizontal form row — fields side by side */
 .form-row {
     display: flex;
     gap: 16px;
 }
 
-.flex-2 {
-    flex: 2;
+/* Flex sizing helpers for form columns */
+.flex-2 { flex: 2; }
+.flex-1 { flex: 1; }
+
+/* Text input, select, and textarea — dark styled inputs
+   with orange focus glow */
+input[type="text"],
+select,
+textarea {
+    width: 100%;
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: var(--text-main);
+    font-size: 14px;
+    outline: none;
+    transition: all 0.25s ease;
 }
 
-.flex-1 {
-    flex: 1;
+input[type="text"]:focus,
+select:focus,
+textarea:focus {
+    border-color: var(--primary-orange);
+    box-shadow: 0 0 0 3px var(--primary-orange-glow);
 }
 
+/* Custom select dropdown — hides native arrow, adds SVG chevron */
+select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23A1A1AA' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 40px;
+}
+
+select option,
+select optgroup {
+    background: #1a1a1a;
+    color: var(--text-main);
+}
+
+/* Textarea — fixed height, no resize */
+textarea {
+    height: 100px;
+    resize: none;
+    line-height: 1.6;
+}
+
+/* Grade value display box — shows current grade (e.g., "A+")
+   with color-coded border based on grade level */
 .value-display {
     background: var(--input-bg);
-    border: 1px solid var(--card-border);
-    border-radius: 8px;
-    padding: 14px 16px;
-    font-size: 18px;
-    font-weight: 700;
+    border: 1px solid var(--input-border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 20px;
+    font-weight: 800;
     text-align: center;
-    color: var(--text-muted);
+    color: var(--text-dim);
+    transition: all 0.3s ease;
+    letter-spacing: 1px;
 }
 
-textarea {
-    height: 120px;
-    resize: none;
-}
+/* Grade color variants — green (A), blue (B), yellow (C), red (F) */
+.value-display.grade-a { color: var(--success-green); border-color: rgba(64, 192, 87, 0.3); }
+.value-display.grade-b { color: var(--blue-glow); border-color: rgba(77, 171, 247, 0.3); }
+.value-display.grade-c { color: var(--warning-yellow); border-color: rgba(250, 176, 5, 0.3); }
+.value-display.grade-f { color: var(--error-red); border-color: rgba(250, 82, 82, 0.3); }
 
-.upload-zone {
-    border: 2px dashed var(--card-border);
-    border-radius: 12px;
-    padding: 32px;
-    text-align: center;
-    cursor: pointer;
-    transition: background 0.2s;
-}
+/* ═══════════════════════════════════════════
+   BUTTONS
+   ═══════════════════════════════════════════ */
 
-.upload-zone:hover {
-    background: rgba(255, 255, 255, 0.02);
-}
-
-.upload-zone p {
-    font-size: 14px;
-    margin: 12px 0 4px;
-}
-
-.upload-zone p span {
-    color: var(--primary-orange);
-    text-decoration: underline;
-}
-
-.upload-zone small {
-    font-size: 11px;
-    color: var(--text-muted);
-}
-
+/* Form action buttons row — right-aligned (Save Draft, Submit) */
 .form-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 16px;
-    margin-top: 8px;
+    gap: 12px;
+    margin-top: 4px;
 }
 
+/* Base button style */
 .btn {
-    padding: 14px 28px;
-    border-radius: 8px;
-    font-size: 14px;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-size: 13px;
     font-weight: 700;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.25s ease;
     border: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
+.btn i {
+    font-size: 16px;
+}
+
+/* Disabled button state */
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* Primary button — orange gradient with glow + lift on hover */
 .btn-primary {
-    background: var(--primary-orange);
+    background: linear-gradient(135deg, var(--primary-orange), #ff9a44);
     color: white;
-    box-shadow: 0 4px 15px rgba(255, 138, 0, 0.3);
+    box-shadow: 0 4px 15px var(--primary-orange-glow);
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(255, 138, 0, 0.4);
+    box-shadow: 0 6px 20px rgba(243, 112, 33, 0.4);
 }
 
+.btn-primary:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+/* Secondary button — dark gray with border */
 .btn-secondary {
-    background: #333;
-    color: white;
+    background: #2a2a2d;
+    color: var(--text-main);
+    border: 1px solid var(--card-border);
 }
 
+.btn-secondary:hover:not(:disabled) {
+    background: #333;
+    border-color: var(--text-dim);
+}
+
+/* Ghost button — transparent with border ("Save Draft") */
+.btn-ghost {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--card-border);
+}
+
+.btn-ghost:hover:not(:disabled) {
+    color: var(--text-main);
+    border-color: var(--text-dim);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+/* Danger button — red gradient ("Withdraw from Course") */
+.btn-danger {
+    background: linear-gradient(135deg, var(--error-red), #ff6b6b);
+    color: white;
+    box-shadow: 0 4px 15px rgba(250, 82, 82, 0.25);
+}
+
+.btn-danger:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(250, 82, 82, 0.4);
+}
+
+.btn-danger:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+/* ═══════════════════════════════════════════
+   DRAFT NOTICE
+   ═══════════════════════════════════════════ */
+
+/* Blue info notice — "Draft restored from your last session" */
+.draft-notice {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    background: rgba(77, 171, 247, 0.08);
+    border: 1px solid rgba(77, 171, 247, 0.15);
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--blue-glow);
+}
+
+.draft-notice i {
+    font-size: 16px;
+}
+
+.draft-notice a {
+    color: var(--primary-orange);
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+/* Utility to hide elements */
+.hidden {
+    display: none !important;
+}
+
+/* ═══════════════════════════════════════════
+   COURSE WITHDRAWAL
+   ═══════════════════════════════════════════ */
+
+/* Red warning box — "Withdrawing from a course will assign W" */
+.withdrawal-warning {
+    display: flex;
+    gap: 14px;
+    padding: 16px 20px;
+    background: rgba(250, 82, 82, 0.06);
+    border: 1px solid rgba(250, 82, 82, 0.15);
+    border-radius: 12px;
+    border-left: 4px solid var(--error-red);
+}
+
+.withdrawal-warning i {
+    font-size: 22px;
+    color: var(--error-red);
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.withdrawal-warning strong {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--error-red);
+    margin-bottom: 4px;
+}
+
+.withdrawal-warning p {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.6;
+}
+
+/* Course info table for withdrawal — shows course name, credits,
+   semester, and status in a bordered card */
+.withdrawal-course-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+/* Individual row in withdrawal course info */
+.wci-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--card-border);
+}
+
+.wci-row:last-child {
+    border-bottom: none;
+}
+
+/* Row label text (e.g., "Course", "Credits") */
+.wci-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+/* Row value text (e.g., course name, credit count) */
+.wci-value {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+/* Small green "ONGOING" badge for current-status row */
+.badge-running-sm {
+    font-size: 10px;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: rgba(64, 192, 87, 0.12);
+    color: var(--success-green);
+    letter-spacing: 0.5px;
+}
+
+/* ═══════════════════════════════════════════
+   ACTIVITY SIDEBAR
+   ═══════════════════════════════════════════ */
+
+/* Activity card wrapper — margin below for spacing */
 .activity-card {
     margin-bottom: 24px;
 }
 
+/* Activity card header — "Recent Activity" title */
 .card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
 }
 
+.card-header h3 {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+/* Activity list container (vertical stack of items) */
 .activity-list {
     display: flex;
     flex-direction: column;
-    gap: 20px;
-    margin-bottom: 24px;
+    gap: 16px;
 }
 
+/* Individual activity item — icon + details row */
 .activity-item {
     display: flex;
-    gap: 16px;
-    padding-bottom: 20px;
+    gap: 14px;
+    padding-bottom: 16px;
     border-bottom: 1px solid var(--card-border);
 }
 
 .activity-item:last-child {
     border-bottom: none;
+    padding-bottom: 0;
 }
 
+/* Activity icon — orange circle (default for grade corrections) */
 .activity-icon {
-    width: 40px;
-    height: 40px;
-    background: var(--input-bg);
+    width: 36px;
+    height: 36px;
+    background: rgba(243, 112, 33, 0.1);
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
+    color: var(--primary-orange);
+    font-size: 16px;
+}
+
+/* Red icon variant for withdrawal activities */
+.activity-icon.icon-withdrawal {
+    background: rgba(250, 82, 82, 0.1);
+    color: var(--error-red);
 }
 
 .activity-details {
     flex: 1;
+    min-width: 0;
 }
 
+/* Activity title row — title + status badge */
 .activity-title {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     margin-bottom: 4px;
+    gap: 8px;
 }
 
 .activity-title h4 {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
+/* Status badge — small pill (PENDING, APPROVED, REJECTED, etc.) */
 .status-badge {
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 800;
     padding: 2px 8px;
     border-radius: 4px;
     text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
+/* Orange badge for pending status */
 .status-pending {
     color: var(--primary-orange);
-    background: rgba(255, 138, 0, 0.1);
+    background: rgba(243, 112, 33, 0.1);
 }
 
+/* Green badge for approved status */
 .status-approved {
-    color: var(--blue-glow);
-    background: rgba(77, 171, 247, 0.1);
+    color: var(--success-green);
+    background: rgba(64, 192, 87, 0.1);
 }
 
+/* Red badge for rejected status */
 .status-rejected {
     color: var(--error-red);
     background: rgba(250, 82, 82, 0.1);
 }
 
-.activity-info {
-    font-size: 12px;
+/* Gray badge for withdrawn status */
+.status-withdrawn {
     color: var(--text-muted);
+    background: rgba(255, 255, 255, 0.05);
 }
 
+/* Activity info text (course name or details) */
+.activity-info {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Activity metadata row — date + type on each side */
 .activity-meta {
     display: flex;
     justify-content: space-between;
-    margin-top: 8px;
-    font-size: 11px;
-    color: var(--text-muted);
+    font-size: 10px;
+    color: var(--text-dim);
 }
 
-.btn-link {
-    width: 100%;
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 1px;
-    cursor: pointer;
+/* Empty state for activity list — shown when no activities exist */
+.activity-empty {
     text-align: center;
-    padding: 12px;
+    padding: 32px 16px;
+    color: var(--text-muted);
 }
 
+.activity-empty i {
+    font-size: 36px;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+    display: block;
+}
+
+.activity-empty p {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 4px;
+    color: var(--text-muted);
+}
+
+.activity-empty span {
+    font-size: 12px;
+    color: var(--text-dim);
+}
+
+/* ═══════════════════════════════════════════
+   PROTOCOL CARD
+   ═══════════════════════════════════════════ */
+
+/* Protocol/tip card — gradient background */
 .protocol-card {
     background: linear-gradient(135deg, #1a1a1a 0%, #121212 100%);
 }
 
 .protocol-card p {
-    font-size: 13px;
-    line-height: 1.6;
+    font-size: 12px;
+    line-height: 1.7;
     color: var(--text-muted);
     margin-top: 12px;
 }
 
-.search-dropdown {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: 8px;
-    margin-top: 4px;
-    z-index: 100;
-    max-height: 300px;
-    overflow-y: auto;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+/* ═══════════════════════════════════════════
+   SKELETON LOADING
+   ═══════════════════════════════════════════ */
+
+/* Skeleton loading text — shimmer animation placeholder */
+.skeleton-text {
+    color: transparent;
+    background: linear-gradient(90deg, #2a2a2d 25%, #333 50%, #2a2a2d 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+    display: inline-block;
+    min-width: 30px;
 }
 
-.search-item {
-    padding: 12px 16px;
-    cursor: pointer;
-    transition: background 0.2s;
+/* Skeleton container for activity list loading state */
+.activity-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 8px 0;
 }
 
-.search-item:hover {
-    background: #333;
+/* Individual skeleton row — full or short width */
+.skeleton-row {
+    height: 14px;
+    background: linear-gradient(90deg, #2a2a2d 25%, #333 50%, #2a2a2d 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 6px;
+    width: 100%;
 }
 
-.search-item .student-name {
+.skeleton-row.short {
+    width: 60%;
+}
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* ═══════════════════════════════════════════
+   TOAST NOTIFICATIONS
+   ═══════════════════════════════════════════ */
+
+/* Toast container — fixed top-right stack of notifications */
+.toast-container {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+
+/* Individual toast notification — slides in from right */
+.toast {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    border-radius: 12px;
+    font-size: 13px;
     font-weight: 600;
-    font-size: 14px;
+    pointer-events: all;
+    transform: translateX(120%);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    max-width: 380px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
 }
 
-.search-item .student-id {
-    font-size: 12px;
+/* Toast visible state */
+.toast.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+/* Toast hiding animation */
+.toast.hide {
+    transform: translateX(120%);
+    opacity: 0;
+}
+
+.toast i {
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.toast span {
+    flex: 1;
+}
+
+/* Toast close (X) button */
+.toast-close {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    opacity: 0.6;
+    padding: 2px;
+    display: flex;
+    transition: opacity 0.2s;
+}
+
+.toast-close:hover {
+    opacity: 1;
+}
+
+/* Green toast — success notifications */
+.toast-success {
+    background: rgba(64, 192, 87, 0.12);
+    border: 1px solid rgba(64, 192, 87, 0.25);
+    color: var(--success-green);
+}
+
+/* Red toast — error notifications */
+.toast-error {
+    background: rgba(250, 82, 82, 0.12);
+    border: 1px solid rgba(250, 82, 82, 0.25);
+    color: var(--error-red);
+}
+
+/* Blue toast — info notifications */
+.toast-info {
+    background: rgba(77, 171, 247, 0.12);
+    border: 1px solid rgba(77, 171, 247, 0.25);
+    color: var(--blue-glow);
+}
+
+/* ═══════════════════════════════════════════
+   CONFIRMATION MODAL
+   ═══════════════════════════════════════════ */
+
+/* Full-screen dark backdrop with blur — hidden by default */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+/* Modal visible state */
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Modal content box — dark card, centered, scales in */
+.modal-content {
+    background: #1a1a1a;
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 32px;
+    max-width: 440px;
+    width: 90%;
+    text-align: center;
+    transform: scale(0.9) translateY(20px);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.modal-overlay.active .modal-content {
+    transform: scale(1) translateY(0);
+}
+
+/* Modal icon container — rounded box with warning icon */
+.modal-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    background: rgba(243, 112, 33, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+}
+
+.modal-icon i {
+    font-size: 28px;
+    color: var(--primary-orange);
+}
+
+/* Modal title heading */
+.modal-content h3 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+/* Modal message body text */
+.modal-message {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+/* Modal details card — shows course/grade info before confirming */
+.modal-details {
+    background: var(--input-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 4px 0;
+    margin-bottom: 24px;
+    text-align: left;
+}
+
+/* Detail row inside modal — label + value */
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 18px;
+    font-size: 13px;
+}
+
+.detail-row span {
     color: var(--text-muted);
 }
 
-.hidden {
-    display: none;
+.detail-row strong {
+    color: var(--text-main);
+}
+
+.detail-row + .detail-row {
+    border-top: 1px solid var(--card-border);
+}
+
+/* Modal action buttons row — Cancel + Confirm */
+.modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.modal-actions .btn {
+    flex: 1;
+    justify-content: center;
+}
+
+/* ═══════════════════════════════════════════
+   SPINNER ANIMATION
+   ═══════════════════════════════════════════ */
+
+/* Spinner keyframes for loading indicators */
+@keyframes ph-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.ph-spin {
+    animation: ph-spin 1s linear infinite;
+    display: inline-block;
+}
+
+/* ═══════════════════════════════════════════
+   FADE IN ANIMATION
+   ═══════════════════════════════════════════ */
+
+/* Generic fade-in animation for dynamic content */
+.fade-in {
+    animation: fadeIn 0.3s ease forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE BREAKPOINTS
+   Adjusts layout for tablets (<1200px) and
+   mobile (<768px): stacks grid, hides sidebar,
+   and adapts form + nav for small screens.
+   ═══════════════════════════════════════════ */
+@media (max-width: 1200px) {
+    .content-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        display: none;
+    }
+
+    .main-content {
+        margin-left: 0;
+        padding: 24px 16px;
+    }
+
+    .form-row {
+        flex-direction: column;
+    }
+
+    .header-main {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .stats-card {
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .stat-divider {
+        display: none;
+    }
+
+    .tab-nav {
+        width: 100%;
+    }
+
+    .tab-btn {
+        flex: 1;
+        justify-content: center;
+    }
 }

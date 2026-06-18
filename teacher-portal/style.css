@@ -145,15 +145,38 @@ body {
 }
 
 .submenu a:hover {
-    color: var(--text-primary);
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--primary-orange);
 }
 
-.submenu a.active {
-    background-color: var(--primary-orange);
-    color: #fff;
+.submenu li.active a {
+    background-color: rgba(245, 130, 32, 0.1);
+    color: var(--primary-orange);
+    font-weight: 600;
+}
+
+.submenu li.active a:hover {
+    background-color: rgba(245, 130, 32, 0.15);
+    color: var(--primary-orange);
 }
 
 /* Profile Box in Sidebar */
+.profile-link-wrapper,
+.profile-link-wrapper:hover,
+.profile-link-wrapper:focus,
+.profile-link-wrapper:visited,
+.profile-link-wrapper:active {
+    margin-top: auto;
+    display: block;
+    text-decoration: none !important;
+    color: var(--text-primary) !important;
+    outline: none;
+}
+
+.profile-link-wrapper * {
+    text-decoration: none !important;
+}
+
 .profile-box {
     display: flex;
     align-items: center;
@@ -161,41 +184,86 @@ body {
     background-color: var(--bg-card);
     padding: 12px;
     border-radius: 8px;
-    margin-top: auto;
+    border: 1px solid var(--border-color);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.profile-box:hover {
+    border-color: var(--primary-orange);
+    background-color: rgba(245, 130, 32, 0.05);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(245, 130, 32, 0.1);
 }
 
 .profile-box img {
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
     border-radius: 6px;
     object-fit: cover;
+    border: 1.5px solid transparent;
+    transition: border-color 0.25s ease;
+}
+
+.profile-box:hover img {
+    border-color: var(--primary-orange);
 }
 
 .profile-info h4 {
     font-size: 13px;
     margin-bottom: 2px;
     font-weight: 600;
+    color: var(--text-primary) !important;
+    transition: color 0.25s ease;
+}
+
+.profile-box:hover .profile-info h4 {
+    color: var(--primary-orange) !important;
 }
 
 .profile-info p {
     font-size: 11px;
-    color: var(--text-secondary);
+    color: var(--text-secondary) !important;
 }
 
 .logout-btn-container {
-    text-align: center;
-    margin-top: 20px;
+    margin-top: 12px;
+    margin-bottom: 5px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.logout-btn,
+.logout-btn:hover,
+.logout-btn:focus,
+.logout-btn:visited,
+.logout-btn:active {
+    text-decoration: none !important;
+    color: #fff !important;
+    outline: none;
 }
 
 .logout-btn {
-    background-color: var(--primary-orange);
-    color: #fff;
-    border: none;
-    padding: 8px 24px;
-    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background-color: var(--primary-orange) !important;
+    border: 1px solid var(--primary-orange) !important;
+    padding: 8px 14px;
+    border-radius: 6px;
     font-size: 12px;
     font-weight: 600;
-    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 80%;
+}
+
+.logout-btn:hover {
+    background-color: var(--primary-orange-hover) !important;
+    border-color: var(--primary-orange-hover) !important;
+    color: #fff !important;
+    box-shadow: 0 4px 10px rgba(245, 130, 32, 0.25);
+    transform: translateY(-1px);
 }
 
 /* Main Content Area */
@@ -862,4 +930,51 @@ tbody tr:hover {
     padding: 6px;
     text-align: center;
     border-radius: 4px;
+}
+
+/* Back Button */
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+    text-decoration: none !important;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 20px;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+}
+
+.btn-back:hover {
+    color: var(--primary-orange) !important;
+    transform: translateX(-4px);
+}
+
+/* Sidebar menu badges */
+.menu-badge {
+    background-color: var(--color-red);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    border: 1.5px solid var(--bg-dark);
+    box-shadow: 0 0 8px rgba(255, 59, 59, 0.65);
+    padding: 0 4px;
+}
+
+.submenu a {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
 }

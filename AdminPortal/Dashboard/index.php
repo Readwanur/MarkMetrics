@@ -12,17 +12,139 @@ if (!$conn) {
     die("Database connection failed: " . mysqli_connect_error());
 }
 
+// --- Handle Suspend/Unsuspend Status Update ---
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
+    header('Content-Type: application/json');
+    $user_id = mysqli_real_escape_string($conn, $_POST['user_id']);
+    $new_status = mysqli_real_escape_string($conn, $_POST['status']); // 'Active' or 'Inactive'
+    
+    // Check if user exists
+    $check = mysqli_query($conn, "SELECT id, name FROM users WHERE id = '$user_id'");
+    if ($check && mysqli_num_rows($check) > 0) {
+        $user_row = mysqli_fetch_assoc($check);
+        $user_name = $user_row['name'];
+        
+        $update = mysqli_query($conn, "UPDATE users SET status = '$new_status' WHERE id = '$user_id'");
+        if ($update) {
+            // Log audit entry
+            $admin_id = mysqli_real_escape_string($conn, $_SESSION['id']);
+            $action_word = ($new_status === 'Active') ? 'unsuspended' : 'suspended';
+            $audit_desc = "Admin $action_word user account: <strong>$user_name</strong> ($user_id)";
+            mysqli_query($conn, "INSERT INTO audit_logs (user_id, action_type, description) VALUES ('$admin_id', 'user_status_changed', '$audit_desc')");
+            
+            echo json_encode(['success' => true]);
+        } else {
+            echo json_encode(['success' => false, 'error' => mysqli_error($conn)]);
+        }
+    } else {
+        echo json_encode(['success' => false, 'error' => 'User not found']);
+    }
+    mysqli_close($conn);
+    exit();
+}
 // --- API Handlers ---
 if (isset($_GET['action'])) {
     header('Content-Type: application/json');
 
+    if ($_GET['action'] === 'fetch_directory') {
+        $page = isset($_GET['page']) ? intval($_GET['page']) : 1;
+        if ($page < 1) $page = 1;
+        
+        $query = $_GET['q'] ?? '';
+        $role_filter = $_GET['role'] ?? 'all';
+        $limit = 6;
+        $offset = ($page - 1) * $limit;
+        
+        $where_clauses = [];
+        if (!empty($query)) {
+            $safe_query = mysqli_real_escape_string($conn, $query);
+            $where_clauses[] = "(u.name LIKE '%$safe_query%' OR u.id LIKE '%$safe_query%' OR t.initials LIKE '%$safe_query%')";
+        }
+        
+        if ($role_filter === 'student') {
+            $where_clauses[] = "u.role = 'student'";
+        } elseif ($role_filter === 'teacher') {
+            $where_clauses[] = "u.role = 'teacher'";
+        } else {
+            $where_clauses[] = "u.role IN ('student', 'teacher')";
+        }
+        
+        $where_str = implode(' AND ', $where_clauses);
+        
+        // Count total matching users
+        $count_sql = "SELECT COUNT(*) as total
+                      FROM users u
+                      LEFT JOIN teachers t ON u.id = t.teacher_id
+                      WHERE $where_str";
+        $count_res = mysqli_query($conn, $count_sql);
+        $total_users = 0;
+        if ($count_res) {
+            $total_users = intval(mysqli_fetch_assoc($count_res)['total']);
+        }
+        $total_pages = ceil($total_users / $limit);
+        if ($total_pages < 1) $total_pages = 1;
+        
+        // Sort order parameter
+        $sort = $_GET['sort'] ?? '';
+        $order_by = "u.role ASC, u.name ASC";
+        if ($sort === 'name_asc') {
+            $order_by = "u.name ASC";
+        } elseif ($sort === 'name_desc') {
+            $order_by = "u.name DESC";
+        } elseif ($sort === 'id_asc') {
+            $order_by = "u.id ASC";
+        } elseif ($sort === 'id_desc') {
+            $order_by = "u.id DESC";
+        }
+        
+        // Fetch paginated users
+        $sql = "SELECT u.id, u.name, u.role, u.status, u.email,
+                       d.name as dept_name, t.position, t.initials, s.academic_year
+                FROM users u
+                LEFT JOIN departments d ON u.department_id = d.department_id
+                LEFT JOIN teachers t ON u.id = t.teacher_id
+                LEFT JOIN students s ON u.id = s.student_id
+                WHERE $where_str
+                ORDER BY $order_by
+                LIMIT $limit OFFSET $offset";
+                
+        $res = mysqli_query($conn, $sql);
+        $users = [];
+        if ($res) {
+            while ($row = mysqli_fetch_assoc($res)) {
+                $users[] = $row;
+            }
+        }
+        
+        echo json_encode([
+            'users' => $users,
+            'total_pages' => $total_pages,
+            'current_page' => $page,
+            'total_users' => $total_users
+        ]);
+        mysqli_close($conn);
+        exit();
+    }
+
     if ($_GET['action'] === 'search') {
         $query = $_GET['q'] ?? '';
+        $role_filter = $_GET['role'] ?? 'all';
         $results = [];
         if (strlen($query) > 0) {
             $safe_query = mysqli_real_escape_string($conn, $query);
-            $sql = "SELECT id, name, role FROM users 
-                    WHERE id LIKE '%$safe_query%' OR name LIKE '%$safe_query%' 
+            $where_clauses = ["(u.id LIKE '%$safe_query%' OR u.name LIKE '%$safe_query%' OR t.initials LIKE '%$safe_query%')"];
+            if ($role_filter === 'student') {
+                $where_clauses[] = "u.role = 'student'";
+            } elseif ($role_filter === 'teacher') {
+                $where_clauses[] = "u.role = 'teacher'";
+            } else {
+                $where_clauses[] = "u.role IN ('student', 'teacher')";
+            }
+            $where_str = implode(' AND ', $where_clauses);
+            
+            $sql = "SELECT u.id, u.name, u.role FROM users u 
+                    LEFT JOIN teachers t ON u.id = t.teacher_id
+                    WHERE $where_str
                     LIMIT 10";
             $res = mysqli_query($conn, $sql);
             if ($res) {
@@ -244,32 +366,55 @@ mysqli_close($conn);
         <main class="main-content">
             <!-- Top Bar -->
             <div class="top-bar">
-                <div class="search-bar" style="position: relative;">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                    </svg>
-                    <input type="text" placeholder="Search by name or ID..." id="searchInput" autocomplete="off">
+                <div class="search-container">
+                    <div class="search-bar" style="position: relative;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <input type="text" placeholder="Search by name, ID or initial..." id="searchInput" autocomplete="off">
+                    </div>
                     <div id="searchSuggestions" class="search-suggestions" style="display: none;"></div>
+                    <select id="roleFilter" style="background: #27272a; border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-secondary); padding: 10px 16px; outline: none; font-size: 14px; cursor: pointer; -webkit-appearance: none; appearance: none; background-image: url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%2371717a\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><polyline points=\'6 9 12 15 18 9\'></polyline></svg>'); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px;">
+                        <option value="all">All Roles</option>
+                        <option value="student">Student</option>
+                        <option value="teacher">Teacher</option>
+                    </select>
                 </div>
 
-                <div class="top-bar-center">
-                    <span class="term-label">Academic Term</span>
-                    <span>Today's Date <?php echo date('jS F Y'); ?></span>
-                </div>
+                <div class="top-bar-right" style="position: relative; display: flex; align-items: center; gap: 16px;">
+                    <!-- Academic Term Badge -->
+                    <div class="term-badge" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(243,112,33,0.1); border: 1px solid rgba(243,112,33,0.25); color: var(--accent-orange); padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; height: 34px;">
+                        <span style="width: 6px; height: 6px; background-color: var(--accent-orange); border-radius: 50%; display: inline-block; box-shadow: 0 0 8px var(--accent-orange);"></span>
+                        Term: <?php echo SYSTEM_TERM_DISPLAY; ?>
+                    </div>
 
-                <div class="top-bar-right">
-                    <button class="notification-btn" id="notificationBtn">
-                        <span class="notification-badge"></span>
+                    <!-- Datetime Widget -->
+                    <div class="datetime-display" style="display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 10px; padding: 6px 14px; height: 34px;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px; color: var(--accent-orange); flex-shrink: 0;">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        <span style="font-weight: 700; color: var(--text-primary); font-size: 12px; white-space: nowrap;" id="topBarDate"><?php echo date('jS F'); ?></span>
+                        <span style="width: 1px; height: 12px; background: var(--border-color); display: inline-block;"></span>
+                        <span id="topBarTime" style="font-weight: 600; font-family: monospace; color: var(--text-secondary); font-size: 12px; white-space: nowrap;"><?php echo date('h:i A'); ?></span>
+                    </div>
+                    <button class="notification-btn" id="notificationBtn" onclick="toggleAdminNoti(event)">
+                        <span class="notification-badge" id="notiPulseBadge"></span>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                             stroke-linecap="round" stroke-linejoin="round">
                             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                             <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
                         </svg>
                     </button>
-                    <div class="top-bar-brand">
-                        MarkMetrics
+                    <!-- Notification Dropdown -->
+                    <div id="adminNotiDropdown" class="notification-dropdown" style="display:none;">
+                        <div class="notification-dropdown-header">
+                            <span>🔔 Notifications</span>
+                            <span style="font-size:11px; background:rgba(243,112,33,0.12); color:var(--accent-orange); padding:2px 8px; border-radius:20px; font-weight:600;" id="notiCount">0 Pending</span>
+                        </div>
+                        <div id="notiContent" class="noti-empty">Loading...</div>
                     </div>
                 </div>
             </div>
@@ -315,56 +460,51 @@ mysqli_close($conn);
                     </div>
                 </div>
 
-                <!-- Main Dashboard Grid -->
                 <div class="dashboard-grid">
-                    <!-- Registry -->
+                    <!-- Registry / User Directory -->
                     <div class="registry-card">
-                        <div class="registry-header">
-                            <h3>Active Faculty & Student Registry</h3>
+                        <div class="registry-header" style="flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; display: flex; width: 100%;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 4px; height: 24px; background: var(--accent-orange); border-radius: 2px;"></div>
+                                <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin: 0;">User Directory</h3>
+                            </div>
+                            
+                            <div class="directory-controls" style="display: flex; align-items: center; gap: 10px;">
+                                <select id="dirRoleFilter" style="background: #27272a; border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-secondary); padding: 6px 12px; outline: none; font-size: 12px; cursor: pointer; font-family: inherit;">
+                                    <option value="all">All Roles</option>
+                                    <option value="student">Students</option>
+                                    <option value="teacher">Teachers</option>
+                                </select>
+                            </div>
                         </div>
 
-                        <table class="registry-table">
-                            <thead>
-                                <tr>
-                                    <th>User Details</th>
-                                    <th>Roles</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="registryBody">
-                                <?php foreach ($registry_users as $user): ?>
+                        <div style="overflow-x: auto; margin-top: 15px; width: 100%;">
+                            <table class="registry-table" style="width: 100%;">
+                                <thead>
                                     <tr>
-                                        <td>
-                                            <div class="user-cell">
-                                                <div class="user-avatar-sm">
-                                                    <img src="../../Images/OtherUser.jpg"
-                                                        alt="<?php echo htmlspecialchars($user['name']); ?>">
-                                                </div>
-                                                <div>
-                                                    <div class="user-name"><?php echo htmlspecialchars($user['name']); ?>
-                                                    </div>
-                                                    <div class="user-dept">
-                                                        <?php echo htmlspecialchars($user['dept_name'] ?? 'N/A'); ?></div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td><span
-                                                class="role-text"><?php echo htmlspecialchars($user['position'] ?? ucfirst($user['role'])); ?></span>
-                                        </td>
-                                        <td>
-                                            <span
-                                                class="status-badge <?php echo strtolower($user['status']) === 'active' ? 'active' : 'inactive'; ?>">
-                                                <span class="status-badge-dot"></span>
-                                                <?php echo htmlspecialchars($user['status']); ?>
-                                            </span>
-                                        </td>
-                                        <td><button class="action-btn">⋮</button></td>
+                                        <th id="thSortName" style="cursor: pointer; user-select: none; white-space: nowrap; transition: color 0.2s;">
+                                            User Details <span id="sortIndicatorName" style="margin-left: 4px; font-size: 10px; opacity: 0.7;">⇅</span>
+                                        </th>
+                                        <th id="thSortId" style="cursor: pointer; user-select: none; white-space: nowrap; transition: color 0.2s;">
+                                            ID / Initial <span id="sortIndicatorId" style="margin-left: 4px; font-size: 10px; opacity: 0.7;">⇅</span>
+                                        </th>
+                                        <th>Role</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
                                     </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                        <a href="#" class="view-all-link">Total <?php echo number_format($total_users); ?> users</a>
+                                </thead>
+                                <tbody id="registryBody">
+                                    <!-- Populated dynamically via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; flex-wrap: wrap; gap: 12px; border-top: 1px solid var(--border-color); padding-top: 15px; width: 100%;">
+                            <span id="directoryTotalCount" style="font-size: 12px; color: var(--text-muted);">Total <?php echo number_format($total_users); ?> users</span>
+                            <div class="directory-pagination" id="directoryPagination" style="display: flex; align-items: center; gap: 6px;">
+                                <!-- Populated dynamically via JS -->
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Audit Logs -->
@@ -479,6 +619,10 @@ mysqli_close($conn);
             </div>
             <div class="modal-body" id="modalUserDetails">
                 <!-- Details injected via JS -->
+            </div>
+            <div style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+                <button id="suspendUserBtn" class="provision-btn" style="background-color: #ef4444; margin: 0; padding: 10px 20px; font-size: 14px; width: auto; color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: none;">Suspend User</button>
+                <button id="unsuspendUserBtn" class="provision-btn" style="background-color: #22c55e; margin: 0; padding: 10px 20px; font-size: 14px; width: auto; color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: none;">Unsuspend User</button>
             </div>
         </div>
     </div>
