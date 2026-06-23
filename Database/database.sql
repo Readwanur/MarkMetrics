@@ -44,7 +44,7 @@ CREATE TABLE users (
     password_hash VARCHAR(255) NOT NULL,
     role ENUM('student', 'parent', 'teacher', 'admin') NOT NULL,
     department_id INT, 
-    status ENUM('Active', 'Inactive', 'Pending') DEFAULT 'Pending', 
+    status ENUM('Active', 'Inactive') DEFAULT 'Active', 
     profile_picture_url VARCHAR(500),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

@@ -142,7 +142,7 @@ $stats_approved_q = mysqli_query($conn, "SELECT COUNT(*) AS total FROM grade_cor
 $stats_approved = mysqli_fetch_assoc($stats_approved_q)['total'] ?? 0;
 
 // Fetch teacher's courses
-$courses_q = mysqli_query($conn, "SELECT course_code, course_name FROM courses WHERE teacher_id = '$teacher_id'");
+$courses_q = mysqli_query($conn, "SELECT course_code, course_name FROM courses WHERE teacher_id = '$teacher_id' AND status = 'Active'");
 $my_courses = [];
 if ($courses_q) {
     while ($row = mysqli_fetch_assoc($courses_q)) {

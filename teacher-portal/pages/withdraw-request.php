@@ -79,7 +79,7 @@ $stats_approved = mysqli_fetch_assoc($stats_approved_q)['total'] ?? 0;
 $total_withdraw_all = $stats_pending + $stats_rejected + $stats_approved;
 
 // Fetch teacher's courses
-$courses_q = mysqli_query($conn, "SELECT * FROM courses WHERE teacher_id = '$teacher_id'");
+$courses_q = mysqli_query($conn, "SELECT * FROM courses WHERE teacher_id = '$teacher_id' AND status = 'Active'");
 $courses_list = [];
 if ($courses_q) {
     while ($course = mysqli_fetch_assoc($courses_q)) {

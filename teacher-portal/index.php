@@ -20,7 +20,7 @@ $courses_query = "SELECT c.*, d.name AS dept_name,
                   (SELECT COUNT(*) FROM enrollments e WHERE e.course_code = c.course_code AND e.semester_id = {$current_semester_id}) AS enrollment_count 
                   FROM courses c 
                   LEFT JOIN departments d ON c.department_id = d.department_id 
-                  WHERE c.teacher_id = '{$teacher_id}' AND c.semester_id = {$current_semester_id}";
+                  WHERE c.teacher_id = '{$teacher_id}' AND c.semester_id = {$current_semester_id} AND c.status = 'Active'";
 $courses_result = mysqli_query($conn, $courses_query);
 
 

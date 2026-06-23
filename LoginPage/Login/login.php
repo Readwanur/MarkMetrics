@@ -133,6 +133,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $safe_login_role = mysqli_real_escape_string($conn, $data['role']);
                     $login_desc = "<strong>$safe_login_name</strong> ($safe_login_id) logged in as " . ucfirst($safe_login_role);
                     mysqli_query($conn, "INSERT INTO audit_logs (user_id, action_type, description) VALUES ('$safe_login_id', 'user_login', '$login_desc')");
+                    
+                    // Update user last login/access time
+                    mysqli_query($conn, "UPDATE users SET last_login = NOW() WHERE id = '$safe_login_id'");
 
                     // Redirect based on role
                     if ($_SESSION['role'] === 'admin') {

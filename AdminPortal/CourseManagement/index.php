@@ -12,36 +12,99 @@ if (!$conn) {
     die("Database connection failed: " . mysqli_connect_error());
 }
 
-// --- Course Registration POST Handler ---
+// --- Course Registration & Action POST Handler ---
 $course_register_success = false;
 $course_register_error = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_course'])) {
-    $c_code = mysqli_real_escape_string($conn, trim($_POST['course_code']));
-    $c_name = mysqli_real_escape_string($conn, trim($_POST['course_name']));
-    $c_credits = floatval($_POST['credits']);
-    $c_dept = intval($_POST['department_id']);
-    $c_teacher = !empty($_POST['teacher_id']) ? "'" . mysqli_real_escape_string($conn, $_POST['teacher_id']) . "'" : "NULL";
-    $c_sem = intval($_POST['semester_id']);
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['register_course'])) {
+        $c_code = mysqli_real_escape_string($conn, trim($_POST['course_code']));
+        $c_name = mysqli_real_escape_string($conn, trim($_POST['course_name']));
+        $c_credits = floatval($_POST['credits']);
+        $c_dept = intval($_POST['department_id']);
+        $c_teacher = !empty($_POST['teacher_id']) ? "'" . mysqli_real_escape_string($conn, $_POST['teacher_id']) . "'" : "NULL";
+        $c_sem = intval($_POST['semester_id']);
 
-    // Check if course already exists
-    $check_c = mysqli_query($conn, "SELECT course_code FROM courses WHERE course_code = '$c_code'");
-    if ($check_c && mysqli_num_rows($check_c) > 0) {
-        $course_register_error = "A course with this code already exists.";
-    } else {
-        $ins_c = "INSERT INTO courses (course_code, course_name, department_id, credits, teacher_id, semester_id) 
-                  VALUES ('$c_code', '$c_name', $c_dept, $c_credits, $c_teacher, $c_sem)";
-        if (mysqli_query($conn, $ins_c)) {
-            $course_register_success = true;
-            // Log audit
-            $admin_id = mysqli_real_escape_string($conn, $_SESSION['id']);
-            $audit_desc = "Registered new course: <strong>$c_name</strong> ($c_code)";
-            mysqli_query($conn, "INSERT INTO audit_logs (user_id, action_type, description) VALUES ('$admin_id', 'course_registered', '$audit_desc')");
-            
-            header("Location: index.php");
-            exit();
+        // Check if course already exists
+        $check_c = mysqli_query($conn, "SELECT course_code FROM courses WHERE course_code = '$c_code'");
+        if ($check_c && mysqli_num_rows($check_c) > 0) {
+            $course_register_error = "A course with this code already exists.";
         } else {
-            $course_register_error = mysqli_error($conn);
+            // Generate section and room_number automatically by hashing the course code
+            $hash = md5($c_code);
+            
+            $sections = ['A', 'B', 'C', 'D'];
+            $sec_idx = hexdec(substr($hash, 0, 2)) % count($sections);
+            $generated_section = $sections[$sec_idx];
+            
+            $rooms = ['Room-301', 'Room-302', 'Room-401', 'Room-402', 'Room-501', 'Room-502', 'Room-601', 'Room-602'];
+            $room_idx = hexdec(substr($hash, 2, 2)) % count($rooms);
+            $generated_room = $rooms[$room_idx];
+
+            $ins_c = "INSERT INTO courses (course_code, course_name, department_id, credits, teacher_id, semester_id, section, room_number) 
+                      VALUES ('$c_code', '$c_name', $c_dept, $c_credits, $c_teacher, $c_sem, '$generated_section', '$generated_room')";
+            if (mysqli_query($conn, $ins_c)) {
+                $course_register_success = true;
+                // Log audit
+                $admin_id = mysqli_real_escape_string($conn, $_SESSION['id']);
+                $audit_desc = "Registered new course: <strong>$c_name</strong> ($c_code) | Sec: $generated_section | Rm: $generated_room";
+                mysqli_query($conn, "INSERT INTO audit_logs (user_id, action_type, description) VALUES ('$admin_id', 'course_registered', '$audit_desc')");
+                
+                header("Location: index.php");
+                exit();
+            } else {
+                $course_register_error = mysqli_error($conn);
+            }
+        }
+    } elseif (isset($_POST['action'])) {
+        header('Content-Type: application/json');
+        if ($_POST['action'] === 'delete_course') {
+            $c_code = mysqli_real_escape_string($conn, trim($_POST['course_code']));
+            
+            // Soft delete by updating course status to 'Deleted'
+            $del_c = "UPDATE courses SET status = 'Deleted' WHERE course_code = '$c_code'";
+            if (mysqli_query($conn, $del_c)) {
+                $admin_id = mysqli_real_escape_string($conn, $_SESSION['id']);
+                $audit_desc = "Soft-deleted course/section: <strong>$c_code</strong>";
+                mysqli_query($conn, "INSERT INTO audit_logs (user_id, action_type, description) VALUES ('$admin_id', 'course_deleted', '$audit_desc')");
+                echo json_encode(['success' => true]);
+            } else {
+                echo json_encode(['success' => false, 'error' => mysqli_error($conn)]);
+            }
+            exit();
+        } elseif ($_POST['action'] === 'drop_course') {
+            $c_code = mysqli_real_escape_string($conn, trim($_POST['course_code']));
+            
+            // Soft drop by updating course status to 'Dropped'
+            $drop_c = "UPDATE courses SET status = 'Dropped' WHERE course_code = '$c_code'";
+            $drop_enroll = "UPDATE enrollments SET status = 'Dropped', grade = 'W', points = 0.00 WHERE course_code = '$c_code'";
+            
+            if (mysqli_query($conn, $drop_c) && mysqli_query($conn, $drop_enroll)) {
+                $admin_id = mysqli_real_escape_string($conn, $_SESSION['id']);
+                $audit_desc = "Dropped course/section: <strong>$c_code</strong> and set all student enrollments to Dropped";
+                mysqli_query($conn, "INSERT INTO audit_logs (user_id, action_type, description) VALUES ('$admin_id', 'course_dropped', '$audit_desc')");
+                echo json_encode(['success' => true]);
+            } else {
+                echo json_encode(['success' => false, 'error' => mysqli_error($conn)]);
+            }
+            exit();
+        } elseif ($_POST['action'] === 'restore_course') {
+            $c_code = mysqli_real_escape_string($conn, trim($_POST['course_code']));
+            
+            // Restore course by updating status to 'Active'
+            $restore_c = "UPDATE courses SET status = 'Active' WHERE course_code = '$c_code'";
+            // Restore students that were dropped as part of dropping this course
+            $restore_enroll = "UPDATE enrollments SET status = 'Ongoing', grade = NULL, points = NULL WHERE course_code = '$c_code' AND status = 'Dropped' AND grade = 'W'";
+            
+            if (mysqli_query($conn, $restore_c) && mysqli_query($conn, $restore_enroll)) {
+                $admin_id = mysqli_real_escape_string($conn, $_SESSION['id']);
+                $audit_desc = "Restored course/section: <strong>$c_code</strong> to Active catalog and restored dropped student enrollments";
+                mysqli_query($conn, "INSERT INTO audit_logs (user_id, action_type, description) VALUES ('$admin_id', 'course_restored', '$audit_desc')");
+                echo json_encode(['success' => true]);
+            } else {
+                echo json_encode(['success' => false, 'error' => mysqli_error($conn)]);
+            }
+            exit();
         }
     }
 }
@@ -75,7 +138,7 @@ if (isset($_GET['action'])) {
         $course_info = [];
         if (!empty($code)) {
             $safe_code = mysqli_real_escape_string($conn, $code);
-            $sql = "SELECT c.course_code, c.course_name, c.credits,
+            $sql = "SELECT c.course_code, c.course_name, c.credits, c.section, c.room_number,
                            d.name as dept_name,
                            u.name as teacher_name,
                            s.display_name as semester
@@ -154,18 +217,18 @@ $completed_enrollments = mysqli_fetch_assoc($result)['completed'];
 $completion_rate = $total_enrollments > 0 ? round(($completed_enrollments / $total_enrollments) * 100, 1) : 0;
 
 // Count departments with courses
-$result = mysqli_query($conn, "SELECT COUNT(DISTINCT department_id) as dept_count FROM courses");
+$result = mysqli_query($conn, "SELECT COUNT(DISTINCT department_id) as dept_count FROM courses WHERE status = 'Active'");
 $dept_count = mysqli_fetch_assoc($result)['dept_count'];
 
 // Count active courses
-$result = mysqli_query($conn, "SELECT COUNT(*) as total FROM courses");
+$result = mysqli_query($conn, "SELECT COUNT(*) as total FROM courses WHERE status = 'Active'");
 $total_courses = mysqli_fetch_assoc($result)['total'];
 
 // Fetch all courses with department and teacher info
 $courses_query = "
-    SELECT c.course_code, c.course_name, c.credits, c.semester_id,
+    SELECT c.course_code, c.course_name, c.credits, c.semester_id, c.section, c.room_number, c.status,
            d.name as dept_name, d.department_id,
-           u.name as teacher_name
+           u.name as teacher_name, u.profile_picture_url as teacher_pic
     FROM courses c
     JOIN departments d ON c.department_id = d.department_id
     LEFT JOIN users u ON c.teacher_id = u.id
@@ -227,7 +290,7 @@ mysqli_close($conn);
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=<?php echo time(); ?>">
 </head>
 
 <body>
@@ -339,7 +402,7 @@ mysqli_close($conn);
                     <div id="adminNotiDropdown" class="notification-dropdown" style="display:none;">
                         <div class="notification-dropdown-header">
                             <span>🔔 Notifications</span>
-                            <span style="font-size:11px; background:rgba(243,112,33,0.12); color:var(--accent-orange); padding:2px 8px; border-radius:20px; font-weight:600;" id="notiCount">0 Pending</span>
+                            <span style="font-size:11px; background:rgba(243,112,33,0.12); color:var(--accent-orange); padding:2px 8px; border-radius:20px; font-weight:600;" id="notiCount">0 Recent</span>
                         </div>
                         <div id="notiContent" class="noti-empty">Loading...</div>
                     </div>
@@ -362,8 +425,7 @@ mysqli_close($conn);
                 <div class="page-header">
                     <div class="header-titles">
                         <h1>Courses Management</h1>
-                        <p>Reviewing @<?php echo $total_courses; ?> active academic programmes across
-                            <?php echo $dept_count; ?> departments.</p>
+                        <p>Reviewing <?php echo $total_courses; ?> active academic courses across <?php echo $dept_count; ?> departments.</p>
                     </div>
                     <div class="system-status">
                         <span class="system-status-label">System Status</span>
@@ -396,32 +458,64 @@ mysqli_close($conn);
                 </div>
 
                 <!-- Active Catalog -->
-                <div class="catalog-header">
+                <div class="catalog-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
                     <div class="catalog-title">
                         <div class="catalog-title-bar"></div>
-                        <h2>Active Catalog</h2>
+                        <h2 id="catalogTitleText">Active Catalog</h2>
                     </div>
-                    <div class="view-toggle">
-                        <a class="active" id="gridViewBtn">Grid View</a>
-                        <a id="listViewBtn">List View</a>
+                    <div class="catalog-controls" style="display: flex; align-items: center; gap: 16px;">
+                        <select id="deptFilter" class="dept-dropdown-filter">
+                            <option value="all">All Departments</option>
+                            <?php foreach ($departments as $dept): ?>
+                                <option value="<?php echo htmlspecialchars($dept['department_id']); ?>"><?php echo htmlspecialchars($dept['name']); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <div class="view-toggle">
+                            <a class="active" id="gridViewBtn">Grid View</a>
+                            <a id="listViewBtn">List View</a>
+                        </div>
                     </div>
+                </div>
+
+                <!-- Status Filters (Button Pill Style Selector) -->
+                <div class="status-filters" style="display: flex; gap: 12px; margin-bottom: 20px;">
+                    <button class="status-filter-btn active" data-status="Active">Active Sections</button>
+                    <button class="status-filter-btn" data-status="Dropped">Dropped Sections</button>
+                    <button class="status-filter-btn" data-status="Deleted">Deleted Sections</button>
                 </div>
 
                 <!-- Course Cards -->
                 <div class="courses-grid" id="coursesGrid">
                     <?php foreach ($courses as $course): ?>
-                        <div class="course-card" data-course-code="<?php echo htmlspecialchars($course['course_code']); ?>">
-                            <span
-                                class="course-code-badge <?php echo getBadgeClass($course['department_id']); ?>"><?php echo htmlspecialchars($course['course_code']); ?></span>
+                        <div class="course-card" data-course-code="<?php echo htmlspecialchars($course['course_code']); ?>" data-dept-id="<?php echo htmlspecialchars($course['department_id']); ?>" data-status="<?php echo htmlspecialchars($course['status'] ?? 'Active'); ?>">
+                            <div class="card-badges">
+                                <span class="course-code-badge <?php echo getBadgeClass($course['department_id']); ?>"><?php echo htmlspecialchars($course['course_code']); ?></span>
+                                <div style="display: flex; gap: 6px;">
+                                    <span class="card-sub-badge">Sec <?php echo htmlspecialchars($course['section'] ?? 'A'); ?></span>
+                                    <span class="card-sub-badge"><?php echo htmlspecialchars($course['room_number'] ?? 'TBA'); ?></span>
+                                </div>
+                            </div>
                             <h3 class="course-name"><?php echo htmlspecialchars($course['course_name']); ?></h3>
                             <p class="course-dept"><?php echo htmlspecialchars($course['dept_name']); ?></p>
                             <div class="course-instructor">
                                 <div class="instructor-avatar">
-                                    <img src="../../Images/OtherUser.jpg"
-                                        alt="<?php echo htmlspecialchars($course['teacher_name'] ?? 'TBA'); ?>">
+                                    <?php 
+                                        $teacher_avatar = !empty($course['teacher_pic']) ? '../../' . htmlspecialchars($course['teacher_pic']) : '../../Images/OtherUser.jpg';
+                                    ?>
+                                    <img src="<?php echo $teacher_avatar; ?>" alt="<?php echo htmlspecialchars($course['teacher_name'] ?? 'TBA'); ?>">
                                 </div>
-                                <span
-                                    class="instructor-name"><?php echo htmlspecialchars($course['teacher_name'] ?? 'TBA'); ?></span>
+                                <span class="instructor-name"><?php echo htmlspecialchars($course['teacher_name'] ?? 'TBA'); ?></span>
+                            </div>
+                            <div class="card-actions" data-card-status="<?php echo htmlspecialchars($course['status'] ?? 'Active'); ?>">
+                                <?php if (($course['status'] ?? 'Active') === 'Active'): ?>
+                                    <button class="card-action-btn drop-btn" data-code="<?php echo htmlspecialchars($course['course_code']); ?>">Drop Section</button>
+                                    <button class="card-action-btn delete-btn" data-code="<?php echo htmlspecialchars($course['course_code']); ?>">Delete Section</button>
+                                <?php elseif (($course['status'] ?? 'Active') === 'Dropped'): ?>
+                                    <button class="card-action-btn restore-btn" data-code="<?php echo htmlspecialchars($course['course_code']); ?>">Restore Section</button>
+                                    <button class="card-action-btn delete-btn" data-code="<?php echo htmlspecialchars($course['course_code']); ?>">Delete Section</button>
+                                <?php elseif (($course['status'] ?? 'Active') === 'Deleted'): ?>
+                                    <button class="card-action-btn restore-btn" data-code="<?php echo htmlspecialchars($course['course_code']); ?>" style="flex: 1; width: 100%;">Restore Section</button>
+                                <?php endif; ?>
                             </div>
                         </div>
                     <?php endforeach; ?>
@@ -515,7 +609,7 @@ mysqli_close($conn);
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=<?php echo time(); ?>"></script>
     <script>
     function toggleAdminNoti(event) {
         if (event) event.stopPropagation();

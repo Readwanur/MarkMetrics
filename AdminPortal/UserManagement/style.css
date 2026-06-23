@@ -699,8 +699,8 @@ body {
   color: var(--accent-green);
 }
 
-.reg-status.pending {
-  color: var(--accent-orange);
+.reg-status.suspended {
+  color: var(--accent-red);
 }
 
 /* ===== Animations ===== */
@@ -942,5 +942,49 @@ body {
     font-size: 14px;
     font-weight: 600;
     text-align: right;
+}
+
+/* ===== Notification Dropdown Panel ===== */
+.notification-dropdown {
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    width: 300px;
+    background: rgba(22, 22, 30, 0.96);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.6);
+    z-index: 10000;
+    padding: 16px;
+    animation: notiSlideDown 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes notiSlideDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.notification-dropdown-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.notification-dropdown-header span {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.noti-empty {
+    text-align: center;
+    padding: 20px 0;
+    color: var(--text-muted);
+    font-size: 13px;
 }
 

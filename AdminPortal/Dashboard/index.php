@@ -52,7 +52,7 @@ if (isset($_GET['action'])) {
         
         $query = $_GET['q'] ?? '';
         $role_filter = $_GET['role'] ?? 'all';
-        $limit = 6;
+        $limit = (isset($_GET['limit']) && $_GET['limit'] === 'all') ? 10000 : 6;
         $offset = ($page - 1) * $limit;
         
         $where_clauses = [];
@@ -95,10 +95,18 @@ if (isset($_GET['action'])) {
             $order_by = "u.id ASC";
         } elseif ($sort === 'id_desc') {
             $order_by = "u.id DESC";
+        } elseif ($sort === 'access_asc') {
+            $order_by = "u.last_login ASC";
+        } elseif ($sort === 'access_desc') {
+            $order_by = "u.last_login DESC";
+        } elseif ($sort === 'status_asc') {
+            $order_by = "u.status ASC";
+        } elseif ($sort === 'status_desc') {
+            $order_by = "u.status DESC";
         }
         
         // Fetch paginated users
-        $sql = "SELECT u.id, u.name, u.role, u.status, u.email,
+        $sql = "SELECT u.id, u.name, u.role, u.status, u.email, u.last_login,
                        d.name as dept_name, t.position, t.initials, s.academic_year
                 FROM users u
                 LEFT JOIN departments d ON u.department_id = d.department_id
@@ -194,28 +202,19 @@ if (isset($_GET['action'])) {
     }
 
     if ($_GET['action'] === 'fetch_audit_logs') {
+        $limit = (isset($_GET['limit']) && $_GET['limit'] === 'all') ? 1000 : 8;
         $audit_api_query = "
             SELECT al.*, u.name as user_name
             FROM audit_logs al
             LEFT JOIN users u ON al.user_id = u.id
             ORDER BY al.created_at DESC
-            LIMIT 10
+            LIMIT $limit
         ";
         $audit_api_result = mysqli_query($conn, $audit_api_query);
         $audit_api_logs = [];
         if ($audit_api_result) {
             while ($row = mysqli_fetch_assoc($audit_api_result)) {
-                // Calculate relative time on server side
-                $time_diff = time() - strtotime($row['created_at']);
-                if ($time_diff < 60) {
-                    $row['time_label'] = 'Just now';
-                } elseif ($time_diff < 3600) {
-                    $row['time_label'] = floor($time_diff / 60) . ' mins ago';
-                } elseif ($time_diff < 86400) {
-                    $row['time_label'] = floor($time_diff / 3600) . ' hours ago';
-                } else {
-                    $row['time_label'] = floor($time_diff / 86400) . ' days ago';
-                }
+                $row['time_label'] = date('g:i a, j F', strtotime($row['created_at']));
                 $audit_api_logs[] = $row;
             }
         }
@@ -227,17 +226,17 @@ if (isset($_GET['action'])) {
 
 // --- Fetch Dashboard Data ---
 
-// Total Students
-$result = mysqli_query($conn, "SELECT COUNT(*) as total FROM users WHERE role='student'");
-$total_students = mysqli_fetch_assoc($result)['total'];
+// Total Teachers
+$result = mysqli_query($conn, "SELECT COUNT(*) as total FROM users WHERE role='teacher'");
+$total_teachers = mysqli_fetch_assoc($result)['total'];
 
-// Active Teachers
-$result = mysqli_query($conn, "SELECT COUNT(*) as total FROM users WHERE role='teacher' ");
-$active_teachers = mysqli_fetch_assoc($result)['total'];
+// Active Students
+$result = mysqli_query($conn, "SELECT COUNT(*) as total FROM users WHERE role='student' AND status='Active'");
+$active_students = mysqli_fetch_assoc($result)['total'];
 
-// Pending Results (Ongoing enrollments)
-$result = mysqli_query($conn, "SELECT COUNT(*) as total FROM enrollments WHERE status='Ongoing'");
-$pending_results = mysqli_fetch_assoc($result)['total'];
+// Suspended Users
+$result = mysqli_query($conn, "SELECT COUNT(*) as total FROM users WHERE status='Inactive'");
+$suspended_users = mysqli_fetch_assoc($result)['total'];
 
 // Total Users
 $result = mysqli_query($conn, "SELECT COUNT(*) as total FROM users");
@@ -266,7 +265,7 @@ $audit_query = "
     FROM audit_logs al
     LEFT JOIN users u ON al.user_id = u.id
     ORDER BY al.created_at DESC
-    LIMIT 4
+    LIMIT 8
 ";
 $audit_result = mysqli_query($conn, $audit_query);
 $audit_logs = [];
@@ -294,7 +293,7 @@ mysqli_close($conn);
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
 </head>
 
 <body>
@@ -412,7 +411,7 @@ mysqli_close($conn);
                     <div id="adminNotiDropdown" class="notification-dropdown" style="display:none;">
                         <div class="notification-dropdown-header">
                             <span>🔔 Notifications</span>
-                            <span style="font-size:11px; background:rgba(243,112,33,0.12); color:var(--accent-orange); padding:2px 8px; border-radius:20px; font-weight:600;" id="notiCount">0 Pending</span>
+                            <span style="font-size:11px; background:rgba(243,112,33,0.12); color:var(--accent-orange); padding:2px 8px; border-radius:20px; font-weight:600;" id="notiCount">0 Recent</span>
                         </div>
                         <div id="notiContent" class="noti-empty">Loading...</div>
                     </div>
@@ -439,19 +438,19 @@ mysqli_close($conn);
                 <!-- Stats Grid -->
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <span class="stat-label">Total Students</span>
-                        <span class="stat-value"><?php echo number_format($total_students); ?></span>
-                        <span class="stat-sub green">+6.2% from last term</span>
+                        <span class="stat-label">Total Teachers</span>
+                        <span class="stat-value"><?php echo number_format($total_teachers); ?></span>
+                        <span class="stat-sub green">All faculty active</span>
                     </div>
                     <div class="stat-card">
-                        <span class="stat-label">Active Teachers</span>
-                        <span class="stat-value"><?php echo number_format($active_teachers); ?></span>
+                        <span class="stat-label">Active Students</span>
+                        <span class="stat-value"><?php echo number_format($active_students); ?></span>
                         <span class="stat-sub green">99% Authenticated</span>
                     </div>
                     <div class="stat-card">
-                        <span class="stat-label">Pending Results</span>
-                        <span class="stat-value"><?php echo number_format($pending_results); ?></span>
-                        <span class="stat-sub orange">Due in 48th hour</span>
+                        <span class="stat-label">Suspended</span>
+                        <span class="stat-value"><?php echo number_format($suspended_users); ?></span>
+                        <span class="stat-sub orange">Accounts restricted</span>
                     </div>
                     <div class="stat-card">
                         <span class="stat-label">System Health</span>
@@ -485,11 +484,17 @@ mysqli_close($conn);
                                         <th id="thSortName" style="cursor: pointer; user-select: none; white-space: nowrap; transition: color 0.2s;">
                                             User Details <span id="sortIndicatorName" style="margin-left: 4px; font-size: 10px; opacity: 0.7;">⇅</span>
                                         </th>
-                                        <th id="thSortId" style="cursor: pointer; user-select: none; white-space: nowrap; transition: color 0.2s;">
-                                            ID / Initial <span id="sortIndicatorId" style="margin-left: 4px; font-size: 10px; opacity: 0.7;">⇅</span>
+                                        <th id="thSortAccess" style="cursor: pointer; user-select: none; white-space: nowrap; transition: color 0.2s;">
+                                            Access time <span id="sortIndicatorAccess" style="margin-left: 4px; font-size: 10px; opacity: 0.7;">⇅</span>
                                         </th>
+                                        <th id="thSortId" style="cursor: pointer; user-select: none; white-space: nowrap; transition: color 0.2s;">
+                                            ID <span id="sortIndicatorId" style="margin-left: 4px; font-size: 10px; opacity: 0.7;">⇅</span>
+                                        </th>
+                                        <th>Initial</th>
                                         <th>Role</th>
-                                        <th>Status</th>
+                                        <th id="thSortStatus" style="cursor: pointer; user-select: none; white-space: nowrap; transition: color 0.2s;">
+                                            Status <span id="sortIndicatorStatus" style="margin-left: 4px; font-size: 10px; opacity: 0.7;">⇅</span>
+                                        </th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -518,21 +523,17 @@ mysqli_close($conn);
                                 </div>
                             <?php else: ?>
                             <?php foreach ($audit_logs as $log):
-                                $time_diff = time() - strtotime($log['created_at']);
-                                if ($time_diff < 3600) {
-                                    $time_label = floor($time_diff / 60) . ' mins ago';
-                                } elseif ($time_diff < 86400) {
-                                    $time_label = floor($time_diff / 3600) . ' hours ago';
-                                } else {
-                                    $time_label = floor($time_diff / 86400) . ' days ago';
-                                }
+                                $time_label = date('g:i a, j F', strtotime($log['created_at']));
                                 ?>
-                                <div class="audit-item">
+                                <div class="audit-item" data-log-id="<?php echo $log['log_id']; ?>">
                                     <div class="audit-time"><?php echo $time_label; ?></div>
                                     <p class="audit-text"><?php echo $log['description']; ?></p>
                                 </div>
                             <?php endforeach; ?>
                             <?php endif; ?>
+                        </div>
+                        <div style="border-top: 1px solid var(--border-color); margin-top: auto; padding-top: 16px; display: flex; justify-content: center; width: 100%;">
+                            <a href="#" class="view-all-link" id="viewAllAuditBtn" style="width: 100%; text-align: center; padding-top: 0; padding-bottom: 0; margin-top: 0;">View All</a>
                         </div>
                     </div>
                 </div>
@@ -609,6 +610,30 @@ mysqli_close($conn);
         </main>
     </div>
 
+    <!-- Audit Logs Side Drawer -->
+    <div id="auditDrawerOverlay" class="drawer-overlay">
+        <div class="drawer-content">
+            <div class="drawer-header">
+                <h2>System Audit Logs</h2>
+                <button class="drawer-close" id="closeDrawerBtn">&times;</button>
+            </div>
+            
+            <div class="drawer-search-container" style="padding: 16px 24px; border-bottom: 1px solid var(--border-color);">
+                <div class="search-bar" style="width: 100%; position: relative;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input type="text" placeholder="Search audit logs..." id="drawerSearchInput" autocomplete="off">
+                </div>
+            </div>
+            
+            <div class="drawer-body" id="drawerAuditList">
+                <!-- Populated dynamically via JS -->
+            </div>
+        </div>
+    </div>
+
     <!-- User Info Modal -->
     <div id="userInfoModal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
@@ -627,7 +652,7 @@ mysqli_close($conn);
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=<?php echo filemtime('script.js'); ?>"></script>
 </body>
 
 </html>

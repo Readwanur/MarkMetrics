@@ -144,6 +144,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 addRow('Department', data.dept_name);
                 addRow('Credits', data.credits);
                 addRow('Semester', data.semester);
+                addRow('Section', data.section || 'A');
+                addRow('Room', data.room_number || 'TBA');
                 addRow('Instructor', data.teacher_name || 'TBA');
                 addRow('Enrolled Count', data.enrolled_students);
 
@@ -198,6 +200,156 @@ document.addEventListener('DOMContentLoaded', () => {
             const code = card.getAttribute('data-course-code');
             if (code) {
                 fetchCourseDetails(code);
+            }
+        });
+    });
+
+    // Combined Status and Department filtering logic
+    let selectedStatus = 'Active';
+    let selectedDept = 'all';
+
+    function applyFilters() {
+        const catalogTitleText = document.getElementById('catalogTitleText');
+        if (catalogTitleText) {
+            catalogTitleText.textContent = `${selectedStatus} Catalog`;
+        }
+
+        document.querySelectorAll('.course-card').forEach(card => {
+            const cardStatus = card.getAttribute('data-status') || 'Active';
+            const cardDept = card.getAttribute('data-dept-id');
+
+            const matchesStatus = (cardStatus === selectedStatus);
+            const matchesDept = (selectedDept === 'all' || cardDept === selectedDept);
+
+            if (matchesStatus && matchesDept) {
+                card.style.display = '';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        // Show/hide "Register new Program" card only when status is 'Active'
+        const registerCard = document.getElementById('registerProgramCard');
+        if (registerCard) {
+            if (selectedStatus === 'Active') {
+                registerCard.style.display = '';
+            } else {
+                registerCard.style.display = 'none';
+            }
+        }
+    }
+
+    // Status filter buttons
+    document.querySelectorAll('.status-filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.status-filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedStatus = btn.getAttribute('data-status');
+            applyFilters();
+        });
+    });
+
+    // Department filtering (Dropdown Selector)
+    const deptFilterSelect = document.getElementById('deptFilter');
+    if (deptFilterSelect) {
+        deptFilterSelect.addEventListener('change', (e) => {
+            selectedDept = e.target.value;
+            applyFilters();
+        });
+    }
+
+    // Run initial filter on load
+    applyFilters();
+
+    // Drop Section action
+    document.querySelectorAll('.drop-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const code = btn.getAttribute('data-code');
+            if (confirm(`Are you sure you want to drop all enrollments and mark section ${code} as Dropped?`)) {
+                const formData = new FormData();
+                formData.append('action', 'drop_course');
+                formData.append('course_code', code);
+
+                fetch('index.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(`Successfully dropped course/section ${code}.`);
+                        window.location.reload();
+                    } else {
+                        alert(`Error dropping course: ${data.error}`);
+                    }
+                })
+                .catch(err => {
+                    console.error('Error dropping course:', err);
+                    alert('An error occurred while dropping the course.');
+                });
+            }
+        });
+    });
+
+    // Delete Section action
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const code = btn.getAttribute('data-code');
+            if (confirm(`Are you sure you want to soft-delete course/section ${code}? This can be restored from the Deleted sections catalog.`)) {
+                const formData = new FormData();
+                formData.append('action', 'delete_course');
+                formData.append('course_code', code);
+
+                fetch('index.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(`Successfully deleted course/section ${code}.`);
+                        window.location.reload();
+                    } else {
+                        alert(`Error deleting course: ${data.error}`);
+                    }
+                })
+                .catch(err => {
+                    console.error('Error deleting course:', err);
+                    alert('An error occurred while deleting the course.');
+                });
+            }
+        });
+    });
+
+    // Restore Section action
+    document.querySelectorAll('.restore-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const code = btn.getAttribute('data-code');
+            if (confirm(`Are you sure you want to restore course/section ${code} back to the Active catalog?`)) {
+                const formData = new FormData();
+                formData.append('action', 'restore_course');
+                formData.append('course_code', code);
+
+                fetch('index.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(`Successfully restored course/section ${code}.`);
+                        window.location.reload();
+                    } else {
+                        alert(`Error restoring course: ${data.error}`);
+                    }
+                })
+                .catch(err => {
+                    console.error('Error restoring course:', err);
+                    alert('An error occurred while restoring the course.');
+                });
             }
         });
     });

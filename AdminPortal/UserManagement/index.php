@@ -167,7 +167,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['provision'])) {
 
         // Insert into users table
         $insert_sql = "INSERT INTO users (id, name, email, password_hash, role, department_id, status) 
-                       VALUES ('$new_id', '$new_name', '$new_email', '$hashed_password', '$new_role', " . ($dept_id ? "'$dept_id'" : 'NULL') . ", 'Pending')";
+                       VALUES ('$new_id', '$new_name', '$new_email', '$hashed_password', '$new_role', " . ($dept_id ? "'$dept_id'" : 'NULL') . ", 'Active')";
 
         if (mysqli_query($conn, $insert_sql)) {
             // If student, also insert into students table and create parent
@@ -322,7 +322,7 @@ $active_now = mysqli_fetch_assoc($result)['total'];
 $result = mysqli_query($conn, "SELECT COUNT(*) as total FROM teachers");
 $total_teachers = mysqli_fetch_assoc($result)['total'];
 
-$result = mysqli_query($conn, "SELECT COUNT(DISTINCT teacher_id) as assigned FROM courses WHERE teacher_id IS NOT NULL");
+$result = mysqli_query($conn, "SELECT COUNT(DISTINCT teacher_id) as assigned FROM courses WHERE teacher_id IS NOT NULL AND status = 'Active'");
 $assigned_teachers = mysqli_fetch_assoc($result)['assigned'];
 
 $faculty_load = $total_teachers > 0 ? round(($assigned_teachers / $total_teachers) * 100) : 0;
@@ -385,7 +385,7 @@ mysqli_close($conn);
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=<?php echo time(); ?>">
 </head>
 
 <body>
@@ -501,7 +501,7 @@ mysqli_close($conn);
                     <div id="adminNotiDropdown" class="notification-dropdown" style="display:none;">
                         <div class="notification-dropdown-header">
                             <span>🔔 Notifications</span>
-                            <span style="font-size:11px; background:rgba(243,112,33,0.12); color:var(--accent-orange); padding:2px 8px; border-radius:20px; font-weight:600;" id="notiCount">0 Pending</span>
+                            <span style="font-size:11px; background:rgba(243,112,33,0.12); color:var(--accent-orange); padding:2px 8px; border-radius:20px; font-weight:600;" id="notiCount">0 Recent</span>
                         </div>
                         <div id="notiContent" class="noti-empty">Loading...</div>
                     </div>
@@ -706,8 +706,8 @@ mysqli_close($conn);
                                     <div class="registration-right">
                                         <div class="reg-time"><?php echo $time_label; ?></div>
                                         <div
-                                            class="reg-status <?php echo strtolower($user['status']) === 'active' ? 'active' : 'pending'; ?>">
-                                            <?php echo htmlspecialchars($user['status']); ?></div>
+                                            class="reg-status <?php echo strtolower($user['status']) === 'active' ? 'active' : 'suspended'; ?>">
+                                            <?php echo $user['status'] === 'Inactive' ? 'Suspended' : htmlspecialchars($user['status']); ?></div>
                                     </div>
                                 </div>
                             <?php endforeach; ?>
@@ -736,7 +736,7 @@ mysqli_close($conn);
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=<?php echo time(); ?>"></script>
     <script>
     function toggleAdminNoti(event) {
         if (event) event.stopPropagation();

@@ -163,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 addRow('ID', data.id);
                 addRow('Email', data.email);
                 addRow('Department', data.dept_name);
-                addRow('Status', data.status);
+                addRow('Status', data.status === 'Inactive' ? 'Suspended' : data.status);
 
                 if (data.role === 'student') {
                     addRow('Program', data.program_name);
@@ -313,8 +313,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Directory Loading and Pagination ---
     let currentDirPage = 1;
     let currentDirRole = 'all';
-    let currentSortField = ''; // 'name' or 'id'
+    let currentSortField = ''; // 'name', 'id', 'access', or 'status'
     let currentSortOrder = 'asc'; // 'asc' or 'desc'
+    let currentDirLimit = 6;
 
     function loadUserDirectory(page) {
         currentDirPage = page;
@@ -323,7 +324,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!tbody) return;
         
         const sortParam = currentSortField ? `${currentSortField}_${currentSortOrder}` : '';
-        fetch(`index.php?action=fetch_directory&page=${page}&role=${encodeURIComponent(currentDirRole)}&sort=${encodeURIComponent(sortParam)}`)
+        const limitParam = currentDirLimit === 'all' ? '&limit=all' : '';
+        fetch(`index.php?action=fetch_directory&page=${page}&role=${encodeURIComponent(currentDirRole)}&sort=${encodeURIComponent(sortParam)}${limitParam}`)
             .then(res => res.json())
             .then(data => {
                 tbody.innerHTML = '';
@@ -334,11 +336,19 @@ document.addEventListener('DOMContentLoaded', () => {
                         
                         const avatarLetter = u.name.trim().charAt(0).toUpperCase();
                         const avatarBg = u.role === 'teacher' ? '#3b82f6' : '#22c55e';
-                        const initialsDisplay = (u.role === 'teacher' && u.initials) ? u.initials : u.id;
+                        
+                        // Split ID and Initials logic
+                        const idVal = u.role === 'student' ? u.id : '—';
+                        const initialVal = u.role === 'teacher' ? (u.initials || '—') : '—';
+                        
+                        // Access Time
+                        const accessTime = u.last_login || '—';
                         
                         const isActive = u.status === 'Active';
-                        const statusColor = isActive ? '#22c55e' : (u.status === 'Inactive' ? '#ef4444' : '#f59e0b');
-                        const statusBg = isActive ? 'rgba(34,197,94,0.12)' : (u.status === 'Inactive' ? 'rgba(239,68,68,0.12)' : 'rgba(245,158,11,0.12)');
+                        const isSuspended = u.status === 'Inactive';
+                        const statusColor = isActive ? '#22c55e' : '#ef4444';
+                        const statusBg = isActive ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.12)';
+                        const statusLabel = isSuspended ? 'Suspended' : u.status;
                         
                         tr.innerHTML = `
                             <td>
@@ -352,12 +362,14 @@ document.addEventListener('DOMContentLoaded', () => {
                                     </div>
                                 </div>
                             </td>
-                            <td><span style="font-family: monospace; font-size: 13px; color: var(--text-secondary);">${escapeHTML(initialsDisplay)}</span></td>
+                            <td><span style="font-family: monospace; font-size: 13px; color: var(--text-secondary);">${escapeHTML(accessTime)}</span></td>
+                            <td><span style="font-family: monospace; font-size: 13px; color: var(--text-secondary);">${escapeHTML(idVal)}</span></td>
+                            <td><span style="font-family: monospace; font-size: 13px; color: var(--text-secondary);">${escapeHTML(initialVal)}</span></td>
                             <td><span class="role-text" style="color: ${u.role === 'teacher' ? '#60a5fa' : '#4ade80'};">${u.role.charAt(0).toUpperCase() + u.role.slice(1)}</span></td>
                             <td>
                                 <span class="status-badge" style="background: ${statusBg}; color: ${statusColor}; border: 1px solid rgba(${isActive ? '34,197,94' : '239,68,68'}, 0.25); padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">
                                     <span class="status-badge-dot" style="background: ${statusColor};"></span>
-                                    ${escapeHTML(u.status)}
+                                    ${escapeHTML(statusLabel)}
                                 </span>
                             </td>
                             <td>
@@ -378,7 +390,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     tbody.innerHTML = `
                         <tr>
-                            <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 30px;">No matching users found</td>
+                            <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 30px;">No matching users found</td>
                         </tr>
                     `;
                 }
@@ -387,23 +399,28 @@ document.addEventListener('DOMContentLoaded', () => {
                     countSpan.textContent = `Total ${data.total_users} users`;
                 }
                 
-                renderPagination(data.total_pages, data.current_page);
+                renderPagination(data.total_users, data.current_page);
             })
             .catch(err => console.error('Directory fetch error:', err));
     }
 
-    function renderPagination(totalPages, currentPage) {
+    function renderPagination(totalUsers, currentPage) {
         const pagination = document.getElementById('directoryPagination');
         if (!pagination) return;
         pagination.innerHTML = '';
         
-        if (totalPages <= 1) return;
+        const defaultLimit = 6;
+        const normalTotalPages = Math.ceil(totalUsers / defaultLimit);
+        
+        if (normalTotalPages <= 1 && currentDirLimit !== 'all') return;
+        
+        const isAllMode = (currentDirLimit === 'all');
         
         // Prev Button
         const prevBtn = document.createElement('button');
         prevBtn.textContent = 'Prev';
         prevBtn.className = 'pagination-btn';
-        prevBtn.disabled = currentPage === 1;
+        prevBtn.disabled = isAllMode || currentPage === 1;
         prevBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             loadUserDirectory(currentPage - 1);
@@ -411,12 +428,13 @@ document.addEventListener('DOMContentLoaded', () => {
         pagination.appendChild(prevBtn);
         
         // Page numbers
-        for (let i = 1; i <= totalPages; i++) {
+        for (let i = 1; i <= normalTotalPages; i++) {
             const pageBtn = document.createElement('button');
             pageBtn.textContent = i;
-            pageBtn.className = i === currentPage ? 'pagination-btn active' : 'pagination-btn';
+            pageBtn.className = (!isAllMode && i === currentPage) ? 'pagination-btn active' : 'pagination-btn';
             pageBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
+                currentDirLimit = 6;
                 loadUserDirectory(i);
             });
             pagination.appendChild(pageBtn);
@@ -426,12 +444,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const nextBtn = document.createElement('button');
         nextBtn.textContent = 'Next';
         nextBtn.className = 'pagination-btn';
-        nextBtn.disabled = currentPage === totalPages;
+        nextBtn.disabled = isAllMode || currentPage === normalTotalPages;
         nextBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             loadUserDirectory(currentPage + 1);
         });
         pagination.appendChild(nextBtn);
+
+        // All Button
+        const allBtn = document.createElement('button');
+        allBtn.textContent = 'All';
+        allBtn.className = isAllMode ? 'pagination-btn active' : 'pagination-btn';
+        allBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (isAllMode) {
+                currentDirLimit = 6;
+                loadUserDirectory(1);
+            } else {
+                currentDirLimit = 'all';
+                loadUserDirectory(1);
+            }
+        });
+        pagination.appendChild(allBtn);
     }
 
     function escapeHTML(str) {
@@ -441,29 +475,48 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Wire sorting & filter
     const thSortName = document.getElementById('thSortName');
+    const thSortAccess = document.getElementById('thSortAccess');
     const thSortId = document.getElementById('thSortId');
+    const thSortStatus = document.getElementById('thSortStatus');
     const dirFilter = document.getElementById('dirRoleFilter');
 
     function updateSortIndicators() {
         const indicatorName = document.getElementById('sortIndicatorName');
+        const indicatorAccess = document.getElementById('sortIndicatorAccess');
         const indicatorId = document.getElementById('sortIndicatorId');
-        const thName = document.getElementById('thSortName');
-        const thId = document.getElementById('thSortId');
+        const indicatorStatus = document.getElementById('sortIndicatorStatus');
         
-        if (!indicatorName || !indicatorId || !thName || !thId) return;
+        const thName = document.getElementById('thSortName');
+        const thAccess = document.getElementById('thSortAccess');
+        const thId = document.getElementById('thSortId');
+        const thStatus = document.getElementById('thSortStatus');
+        
+        if (!indicatorName || !indicatorAccess || !indicatorId || !indicatorStatus || 
+            !thName || !thAccess || !thId || !thStatus) return;
         
         // Reset styles and text
         indicatorName.textContent = '⇅';
+        indicatorAccess.textContent = '⇅';
         indicatorId.textContent = '⇅';
+        indicatorStatus.textContent = '⇅';
+        
         thName.style.color = '';
+        thAccess.style.color = '';
         thId.style.color = '';
+        thStatus.style.color = '';
         
         if (currentSortField === 'name') {
             thName.style.color = 'var(--accent-orange)';
             indicatorName.textContent = currentSortOrder === 'asc' ? '▲' : '▼';
+        } else if (currentSortField === 'access') {
+            thAccess.style.color = 'var(--accent-orange)';
+            indicatorAccess.textContent = currentSortOrder === 'asc' ? '▲' : '▼';
         } else if (currentSortField === 'id') {
             thId.style.color = 'var(--accent-orange)';
             indicatorId.textContent = currentSortOrder === 'asc' ? '▲' : '▼';
+        } else if (currentSortField === 'status') {
+            thStatus.style.color = 'var(--accent-orange)';
+            indicatorStatus.textContent = currentSortOrder === 'asc' ? '▲' : '▼';
         }
     }
 
@@ -480,12 +533,38 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    if (thSortAccess) {
+        thSortAccess.addEventListener('click', () => {
+            if (currentSortField === 'access') {
+                currentSortOrder = currentSortOrder === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSortField = 'access';
+                currentSortOrder = 'desc'; // Default to newest login first
+            }
+            updateSortIndicators();
+            loadUserDirectory(1);
+        });
+    }
+
     if (thSortId) {
         thSortId.addEventListener('click', () => {
             if (currentSortField === 'id') {
                 currentSortOrder = currentSortOrder === 'asc' ? 'desc' : 'asc';
             } else {
                 currentSortField = 'id';
+                currentSortOrder = 'asc';
+            }
+            updateSortIndicators();
+            loadUserDirectory(1);
+        });
+    }
+
+    if (thSortStatus) {
+        thSortStatus.addEventListener('click', () => {
+            if (currentSortField === 'status') {
+                currentSortOrder = currentSortOrder === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSortField = 'status';
                 currentSortOrder = 'asc';
             }
             updateSortIndicators();
@@ -507,6 +586,106 @@ document.addEventListener('DOMContentLoaded', () => {
         setInterval(fetchAuditLogs, 5000);
         // Also fetch immediately to sync
         fetchAuditLogs();
+    }
+
+    // --- Audit Logs Slide-out Drawer ---
+    const viewAllAuditBtn = document.getElementById('viewAllAuditBtn');
+    const auditDrawerOverlay = document.getElementById('auditDrawerOverlay');
+    const closeDrawerBtn = document.getElementById('closeDrawerBtn');
+    const drawerAuditList = document.getElementById('drawerAuditList');
+    const drawerSearchInput = document.getElementById('drawerSearchInput');
+    let allDrawerLogs = [];
+
+    if (viewAllAuditBtn && auditDrawerOverlay && closeDrawerBtn && drawerAuditList) {
+        viewAllAuditBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            openAuditDrawer();
+        });
+
+        closeDrawerBtn.addEventListener('click', () => {
+            closeAuditDrawer();
+        });
+
+        auditDrawerOverlay.addEventListener('click', (e) => {
+            if (e.target === auditDrawerOverlay) {
+                closeAuditDrawer();
+            }
+        });
+
+        if (drawerSearchInput) {
+            drawerSearchInput.addEventListener('input', () => {
+                filterDrawerLogs(drawerSearchInput.value.trim());
+            });
+        }
+    }
+
+    function openAuditDrawer() {
+        auditDrawerOverlay.style.display = 'flex';
+        // Allow rendering to happen, then apply the active class for slide-in animation
+        setTimeout(() => {
+            auditDrawerOverlay.classList.add('active');
+        }, 10);
+        fetchDrawerAuditLogs();
+    }
+
+    function closeAuditDrawer() {
+        auditDrawerOverlay.classList.remove('active');
+        // Wait for CSS transition (0.3s) before hiding display
+        setTimeout(() => {
+            auditDrawerOverlay.style.display = 'none';
+        }, 300);
+        if (drawerSearchInput) {
+            drawerSearchInput.value = '';
+        }
+    }
+
+    function fetchDrawerAuditLogs() {
+        drawerAuditList.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">Loading logs...</div>';
+        
+        fetch('index.php?action=fetch_audit_logs&limit=all')
+            .then(res => res.json())
+            .then(logs => {
+                allDrawerLogs = logs;
+                renderDrawerLogs(logs);
+            })
+            .catch(err => {
+                console.error('Error fetching all audit logs:', err);
+                drawerAuditList.innerHTML = '<div style="text-align: center; color: var(--accent-red); padding: 20px;">Failed to load audit logs.</div>';
+            });
+    }
+
+    function renderDrawerLogs(logs) {
+        if (!logs || logs.length === 0) {
+            drawerAuditList.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">No matching activity logs.</div>';
+            return;
+        }
+
+        let html = '';
+        logs.forEach(log => {
+            html += `
+                <div class="audit-item" data-log-id="${log.log_id}">
+                    <div class="audit-time">${log.time_label}</div>
+                    <p class="audit-text">${log.description}</p>
+                </div>
+            `;
+        });
+        drawerAuditList.innerHTML = html;
+    }
+
+    function filterDrawerLogs(query) {
+        if (!query) {
+            renderDrawerLogs(allDrawerLogs);
+            return;
+        }
+
+        const lowercaseQuery = query.toLowerCase();
+        const filtered = allDrawerLogs.filter(log => {
+            const desc = (log.description || '').toLowerCase();
+            const label = (log.time_label || '').toLowerCase();
+            const name = (log.user_name || '').toLowerCase();
+            return desc.includes(lowercaseQuery) || label.includes(lowercaseQuery) || name.includes(lowercaseQuery);
+        });
+        renderDrawerLogs(filtered);
     }
 
     // Initial load
